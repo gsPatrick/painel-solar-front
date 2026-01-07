@@ -1,0 +1,61 @@
+.board {
+    display: flex;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    overflow-x: auto;
+    min-height: calc(100vh - var(--header-height) - 60px);
+}
+
+.board::-webkit-scrollbar {
+    height: 8px;
+}
+
+.board::-webkit-scrollbar-track {
+    background: var(--color-bg-main);
+    border-radius: var(--radius-full);
+}
+
+.board::-webkit-scrollbar-thumb {
+    background: var(--color-text-secondary);
+    border-radius: var(--radius-full);
+}
+
+/* Add Column Button */
+.addColumn {
+    width: 320px;
+    min-width: 320px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    background: transparent;
+    border: 2px dashed var(--color-text-secondary);
+    border-radius: var(--radius-lg);
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all var(--transition-normal);
+    opacity: 0.5;
+    flex-shrink: 0;
+}
+
+.addColumn:hover {
+    opacity: 1;
+    border-color: var(--color-secondary);
+    color: var(--color-secondary);
+    background: rgba(67, 24, 255, 0.05);
+}
+
+/* Drag Overlay */
+.dragOverlay {
+    cursor: grabbing;
+}
+
+/* Loading State */
+.loading {
+    display: flex;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    overflow: hidden;
+}

@@ -1,0 +1,219 @@
+.column {
+    width: 320px;
+    min-width: 320px;
+    height: calc(100vh - var(--header-height) - var(--spacing-xl) * 2 - 60px);
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-main);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.header {
+    padding: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid var(--column-color, var(--color-secondary));
+    background: var(--color-bg-card);
+}
+
+.titleWrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.colorDot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--column-color, var(--color-secondary));
+}
+
+.title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.count {
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    background: var(--color-bg-main);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.actionBtn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.actionBtn:hover {
+    background: var(--color-bg-main);
+    color: var(--color-secondary);
+}
+
+.content {
+    flex: 1;
+    padding: var(--spacing-sm);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.content.dragOver {
+    background: rgba(67, 24, 255, 0.05);
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    color: var(--color-text-secondary);
+    text-align: center;
+    flex: 1;
+}
+
+.emptyIcon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: var(--spacing-sm);
+    opacity: 0.3;
+}
+
+.emptyText {
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.addButton {
+    width: 100%;
+    padding: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    background: transparent;
+    border: 2px dashed var(--color-text-secondary);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-normal);
+    opacity: 0.5;
+}
+
+.addButton:hover {
+    opacity: 1;
+    border-color: var(--color-secondary);
+    color: var(--color-secondary);
+    background: rgba(67, 24, 255, 0.05);
+}
+
+/* Skeleton */
+.skeleton .header {
+    opacity: 0.5;
+}
+
+.skeletonCard {
+    height: 100px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: var(--radius-md);
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Ghost Card for drag placeholder */
+.ghostCard {
+    background: rgba(67, 24, 255, 0.1);
+    border: 2px dashed var(--color-secondary);
+    border-radius: var(--radius-md);
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Dropdown Menu */
+.dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    min-width: 160px;
+    background: var(--color-bg-card, white);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.dropdownItem {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 0.875rem;
+    color: var(--color-text-primary, #111);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.dropdownItem:hover {
+    background: var(--color-bg-main, #f5f5f5);
+}
+
+.dropdownItem.danger {
+    color: #EF4444;
+}
+
+.dropdownItem.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    position: relative;
+}

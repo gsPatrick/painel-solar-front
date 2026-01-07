@@ -1,0 +1,383 @@
+.container {
+    padding: var(--spacing-xl);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-xl);
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.searchBox {
+    position: relative;
+    width: 300px;
+}
+
+.searchBox svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-secondary);
+}
+
+.searchInput {
+    width: 100%;
+    height: 44px;
+    padding: 0 16px 0 44px;
+    background: var(--color-bg-card);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: var(--color-secondary);
+    background: white;
+}
+
+.filters {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.filterSelect {
+    height: 44px;
+    padding: 0 36px 0 14px;
+    background: var(--color-bg-card);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23A3AED0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+.actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.btnPrimary {
+    background: linear-gradient(135deg, #4318FF 0%, #6B4DFF 100%);
+    color: white;
+    box-shadow: 0 4px 14px rgba(67, 24, 255, 0.3);
+}
+
+.btnPrimary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67, 24, 255, 0.4);
+}
+
+.btnSecondary {
+    background: #F4F7FE;
+    color: #1B2559;
+}
+
+.btnSecondary:hover {
+    background: #E9EDF5;
+}
+
+/* Table */
+.tableWrapper {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--color-bg-main);
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.table td {
+    padding: 16px 20px;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    border-bottom: 1px solid #F8FAFC;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.table tr:hover td {
+    background: rgba(67, 24, 255, 0.02);
+}
+
+/* Lead Row */
+.leadInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.leadAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.leadName {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.importantIcon {
+    color: #F97316;
+}
+
+.leadPhone {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+/* Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge.meta {
+    background: rgba(24, 119, 242, 0.1);
+    color: #1877F2;
+}
+
+.badge.whatsapp {
+    background: rgba(37, 211, 102, 0.1);
+    color: #25D366;
+}
+
+.badge.manual {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6B7280;
+}
+
+.pipelineBadge {
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+}
+
+/* SLA */
+.slaIndicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.slaDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.slaDot.green {
+    background: var(--color-status-green);
+    box-shadow: 0 0 8px var(--color-status-green);
+}
+
+.slaDot.yellow {
+    background: var(--color-status-yellow);
+    box-shadow: 0 0 8px var(--color-status-yellow);
+}
+
+.slaDot.red {
+    background: var(--color-status-red);
+    box-shadow: 0 0 8px var(--color-status-red);
+    animation: pulse-sla 1.5s infinite;
+}
+
+@keyframes pulse-sla {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.slaText {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+/* Value */
+.value {
+    font-weight: 700;
+    color: var(--color-status-green);
+}
+
+.value.empty {
+    color: var(--color-text-secondary);
+    font-weight: 400;
+}
+
+/* Actions */
+.rowActions {
+    display: flex;
+    gap: 4px;
+}
+
+.actionBtn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+    background: var(--color-bg-main);
+    color: var(--color-secondary);
+}
+
+.actionBtn.warning:hover {
+    background: rgba(245, 158, 11, 0.1);
+    color: #F59E0B;
+}
+
+.actionBtn.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-status-red);
+}
+
+/* Empty */
+.emptyState {
+    padding: 80px;
+    text-align: center;
+}
+
+.emptyIcon {
+    width: 80px;
+    height: 80px;
+    background: var(--color-bg-main);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--spacing-lg);
+    color: var(--color-text-secondary);
+}
+
+.emptyTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.emptyText {
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Skeleton */
+.skeletonRow {
+    height: 72px;
+}
+
+.skeletonCell {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 8px;
+    height: 20px;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Campaign Info */
+.campaignInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.campaignName {
+    font-size: 0.8rem;
+    color: #1877F2;
+    font-weight: 600;
+}
+
+.adsetName {
+    font-size: 0.7rem;
+    color: #667781;
+}
+
+.noCampaign {
+    color: #ccc;
+}

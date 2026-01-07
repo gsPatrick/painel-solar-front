@@ -1,0 +1,256 @@
+.container {
+  padding: var(--spacing-xl);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-xl);
+  padding-bottom: var(--spacing-2xl);
+}
+
+.gridItem {
+  position: relative;
+  background: var(--color-bg-card);
+  border-radius: var(--radius-xl);
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.span2 {
+  grid-column: span 2;
+}
+
+.lockBtn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--color-text-primary);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lockBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.dragOverlay {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  z-index: 10;
+  cursor: grab;
+}
+
+.dragOverlay:hover {
+  background: rgba(67, 24, 255, 0.03);
+  border: 2px dashed var(--color-primary);
+  border-radius: var(--radius-xl);
+}
+
+.dragging {
+  opacity: 0.9;
+  z-index: 1000;
+  box-shadow: var(--shadow-2xl);
+  scale: 1.02;
+  cursor: grabbing;
+}
+
+.activityCard {
+  /* Removed background/shadow as it's now handled by gridItem wrapper, or we keep it inner */
+  background: transparent;
+  padding: var(--spacing-lg);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.activityHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+}
+
+.activityTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.viewAll {
+  font-size: 0.875rem;
+  color: var(--color-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.viewAll:hover {
+  opacity: 0.8;
+}
+
+.taskList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  flex: 1;
+  overflow-y: auto;
+}
+
+.taskItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-bg-main);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+}
+
+.taskItem:hover {
+  background: rgba(67, 24, 255, 0.05);
+}
+
+.taskCheck {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-text-secondary);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.taskCheck:hover {
+  border-color: var(--color-secondary);
+  background: rgba(67, 24, 255, 0.1);
+}
+
+.taskCheck.done {
+  background: var(--color-status-green);
+  border-color: var(--color-status-green);
+  color: white;
+}
+
+.taskContent {
+  flex: 1;
+}
+
+.taskTitle {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+.taskMeta {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.leadList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  flex: 1;
+  overflow-y: auto;
+}
+
+.leadItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-bg-main);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--color-secondary);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.leadItem:hover {
+  transform: translateX(4px);
+  box-shadow: var(--shadow-md);
+}
+
+.leadItem.green {
+  border-left-color: var(--color-status-green);
+}
+
+.leadItem.yellow {
+  border-left-color: var(--color-status-yellow);
+}
+
+.leadItem.red {
+  border-left-color: var(--color-status-red);
+}
+
+.leadAvatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-primary-light));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.leadInfo {
+  flex: 1;
+}
+
+.leadName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.leadStage {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.leadValue {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-status-green);
+}
+
+@media (max-width: 1200px) {
+  .dashboardGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .span2 {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .span2 {
+    grid-column: span 1;
+  }
+}

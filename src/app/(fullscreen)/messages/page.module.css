@@ -1,0 +1,699 @@
+.container {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--color-bg-main, #f0f2f5);
+}
+
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 60px;
+    background: #00A884;
+    color: white;
+    flex-shrink: 0;
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.backButton:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.headerCenter h1 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.headerRight {
+    display: flex;
+    align-items: center;
+}
+
+.resizeHint {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* Split View */
+.splitView {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Chat Section - Left */
+.chatSection {
+    display: flex;
+    background: var(--color-bg-card, white);
+    transition: width 0.05s ease-out;
+}
+
+/* Contacts List */
+.contactsList {
+    width: 320px;
+    min-width: 280px;
+    border-right: 1px solid var(--color-border, #e0e0e0);
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-card, white);
+}
+
+.searchBox {
+    padding: 12px;
+    background: var(--color-bg-main, #f0f2f5);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.searchBox input {
+    flex: 1;
+    border: none;
+    background: var(--color-bg-card, white);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    color: var(--color-text-primary, #111);
+}
+
+.contacts {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.contactItem {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--color-border, #f0f2f5);
+    transition: background 0.15s;
+}
+
+.contactItem:hover {
+    background: var(--color-bg-main, #f5f6f6);
+}
+
+.contactItem.active {
+    background: var(--color-bg-main, #f0f2f5);
+}
+
+.contactAvatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #dfe5e7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.contactInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.contactName {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-text-primary, #111);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.contactPhone {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary, #667781);
+    margin-top: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.contactMeta {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+}
+
+.contactTime {
+    font-size: 0.75rem;
+    color: #667781;
+}
+
+.sourceBadge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.sourceBadge[data-source="meta_ads"] {
+    background: rgba(24, 119, 242, 0.1);
+    color: #1877F2;
+}
+
+.sourceBadge[data-source="whatsapp"] {
+    background: rgba(37, 211, 102, 0.1);
+    color: #25D366;
+}
+
+.sourceBadge[data-source="manual"] {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6B7280;
+}
+
+.campaignBadge {
+    font-size: 0.65rem;
+    color: #1877F2;
+    background: rgba(24, 119, 242, 0.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.emptyContacts {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #8696a0;
+    text-align: center;
+    gap: 12px;
+}
+
+/* Chat Window */
+.chatWindow {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #efe7dd;
+    background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+}
+
+.chatHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--color-bg-card, #f0f2f5);
+    border-bottom: 1px solid var(--color-border, #e0e0e0);
+}
+
+.chatHeaderInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chatAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #00A884;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chatName {
+    font-weight: 600;
+    color: var(--color-text-primary, #111);
+}
+
+.chatStatus {
+    font-size: 0.8rem;
+    color: #667781;
+}
+
+.moreBtn {
+    background: none;
+    border: none;
+    color: #54656f;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+.moreBtn:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+/* Messages Area */
+.messagesArea {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.message {
+    display: flex;
+    margin-bottom: 4px;
+}
+
+.message.incoming {
+    justify-content: flex-start;
+}
+
+.message.outgoing {
+    justify-content: flex-end;
+}
+
+.messageBubble {
+    max-width: 65%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.incoming .messageBubble {
+    background: var(--color-bg-card, white);
+    color: var(--color-text-primary, #111);
+    border-bottom-left-radius: 2px;
+}
+
+.outgoing .messageBubble {
+    background: #d9fdd3;
+    color: #111;
+    border-bottom-right-radius: 2px;
+}
+
+.messageTime {
+    display: block;
+    font-size: 0.65rem;
+    color: #667781;
+    text-align: right;
+    margin-top: 4px;
+}
+
+/* Message Media */
+.messageImage {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+}
+
+.messageVideo {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+}
+
+.messageAudio {
+    width: 100%;
+    margin-bottom: 4px;
+}
+
+/* Attachment Preview */
+.attachmentPreview {
+    padding: 8px 16px;
+    background: #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.attachmentPreview img {
+    max-height: 120px;
+    border-radius: 8px;
+}
+
+.attachmentPreview video {
+    max-height: 120px;
+    border-radius: 8px;
+}
+
+.attachmentPreview audio {
+    width: 200px;
+}
+
+.clearAttachment {
+    position: absolute;
+    top: 4px;
+    right: 20px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.clearAttachment:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* Input Area */
+.inputArea {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    background: #f0f2f5;
+}
+
+.attachBtn {
+    position: relative;
+}
+
+.attachBtn>button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: none;
+    border: none;
+    color: #54656f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.attachBtn>button:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.attachMenu {
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 140px;
+    z-index: 10;
+}
+
+.attachMenu button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #111;
+}
+
+.attachMenu button:hover {
+    background: #f0f2f5;
+}
+
+.inputArea input {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    background: white;
+}
+
+.sendBtn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #00A884;
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sendBtn:hover:not(:disabled) {
+    background: #008f72;
+}
+
+.sendBtn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* No Chat Selected */
+.noChat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f0f2f5;
+    color: #667781;
+    text-align: center;
+    gap: 16px;
+}
+
+.noChat h3 {
+    font-size: 1.5rem;
+    color: #41525d;
+    font-weight: 300;
+}
+
+.noChat p {
+    font-size: 0.9rem;
+}
+
+/* Resizable Divider */
+.divider {
+    width: 6px;
+    background: #e0e0e0;
+    flex-shrink: 0;
+    cursor: col-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.divider:hover,
+.divider.resizing {
+    background: #00A884;
+}
+
+.dividerHandle {
+    width: 4px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+.divider:hover .dividerHandle,
+.divider.resizing .dividerHandle {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+/* Kanban Section - Right */
+.kanbanSection {
+    display: flex;
+    flex-direction: column;
+    background: #f4f7fe;
+    overflow: hidden;
+    transition: width 0.05s ease-out;
+}
+
+.kanbanHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.kanbanHeader h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.kanbanActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.refreshBtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f4f7fe;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.refreshBtn:hover {
+    background: #e2e8f0;
+    color: #4318ff;
+}
+
+.addBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #4318ff 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.addBtn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(67, 24, 255, 0.3);
+}
+
+.kanbanWrapper {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 16px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .splitView {
+        flex-direction: column;
+    }
+
+    .chatSection,
+    .kanbanSection {
+        width: 100% !important;
+        height: 50%;
+    }
+
+    .divider {
+        width: 100%;
+        height: 6px;
+        cursor: row-resize;
+    }
+
+    .dividerHandle {
+        width: 40px;
+        height: 4px;
+    }
+
+    .resizeHint {
+        display: none;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(0.95);
+        opacity: 0.5;
+    }
+}
+
+.recordingArea {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 10px;
+    background: white;
+    border-radius: 8px;
+    height: 48px;
+}
+
+.recordingIndicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #EF4444;
+    animation: pulse 1s infinite;
+}
+
+.aiToggleBtn {
+    background: #10B981;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: all 0.2s;
+}
+
+.aiToggleBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.aiToggleBtn:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}

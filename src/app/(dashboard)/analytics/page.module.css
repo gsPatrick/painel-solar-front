@@ -1,0 +1,307 @@
+.container {
+    padding: var(--spacing-xl);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-xl);
+}
+
+.tabs {
+    display: flex;
+    gap: var(--spacing-xs);
+    background: var(--color-bg-card);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.tab {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+
+.tab.active {
+    background: var(--color-secondary);
+    color: white;
+}
+
+.actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.filterSelect {
+    height: 44px;
+    padding: 0 36px 0 14px;
+    background: var(--color-bg-card);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23A3AED0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Stats Grid */
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.statCard {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-card);
+}
+
+.statHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+}
+
+.statIcon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.statIcon.primary {
+    background: rgba(67, 24, 255, 0.1);
+    color: #4318FF;
+}
+
+.statIcon.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10B981;
+}
+
+.statIcon.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #F59E0B;
+}
+
+.statIcon.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #EF4444;
+}
+
+.statTrend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.statTrend.up {
+    color: #10B981;
+}
+
+.statTrend.down {
+    color: #EF4444;
+}
+
+.statValue {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+}
+
+.statLabel {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+/* Charts Grid */
+.chartsGrid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.chartCard {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-card);
+}
+
+.chartHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+}
+
+.chartTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.chartCanvas {
+    height: 300px;
+    width: 100%;
+}
+
+/* Top Performers */
+.performersList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.performerItem {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--color-bg-main);
+    border-radius: var(--radius-md);
+}
+
+.performerRank {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.performerRank.gold {
+    background: linear-gradient(135deg, #F59E0B, #FBBF24);
+    color: white;
+}
+
+.performerRank.silver {
+    background: linear-gradient(135deg, #94A3B8, #CBD5E1);
+    color: white;
+}
+
+.performerRank.bronze {
+    background: linear-gradient(135deg, #D97706, #F59E0B);
+    color: white;
+}
+
+.performerRank.default {
+    background: var(--color-bg-card);
+    color: var(--color-text-secondary);
+}
+
+.performerInfo {
+    flex: 1;
+}
+
+.performerName {
+    font-weight: 600;
+    color: var(--color-text-primary);
+    font-size: 0.9rem;
+}
+
+.performerSales {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+.performerValue {
+    font-weight: 700;
+    color: var(--color-status-green);
+    font-size: 0.9rem;
+}
+
+/* Table Section */
+.tableSection {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-card);
+}
+
+.tableHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+}
+
+.tableTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    background: var(--color-bg-main);
+    border-radius: 8px;
+}
+
+.table td {
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    color: var(--color-text-primary);
+    border-bottom: 1px solid #F8FAFC;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.pipelineBadge {
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: white;
+}
+
+.value {
+    font-weight: 700;
+    color: var(--color-status-green);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .statsGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chartsGrid {
+        grid-template-columns: 1fr;
+    }
+}

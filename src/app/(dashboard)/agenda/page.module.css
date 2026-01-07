@@ -1,0 +1,269 @@
+.container {
+    padding: var(--spacing-xl);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-xl);
+}
+
+.dateNav {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.navBtn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-card);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+}
+
+.navBtn:hover {
+    background: var(--color-secondary);
+    color: white;
+}
+
+.currentDate {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.viewToggle {
+    display: flex;
+    background: var(--color-bg-card);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    box-shadow: var(--shadow-sm);
+}
+
+.viewBtn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+}
+
+.viewBtn.active {
+    background: var(--color-secondary);
+    color: white;
+}
+
+.viewBtn:hover:not(.active) {
+    background: var(--color-bg-main);
+}
+
+.actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+}
+
+.btnPrimary {
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary-light));
+    color: white;
+}
+
+.btnPrimary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Calendar Grid */
+.calendarGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.dayHeader {
+    padding: var(--spacing-md);
+    background: var(--color-bg-card);
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dayCell {
+    min-height: 120px;
+    padding: var(--spacing-sm);
+    background: var(--color-bg-card);
+    display: flex;
+    flex-direction: column;
+    transition: background var(--transition-fast);
+}
+
+.dayCell:hover {
+    background: rgba(67, 24, 255, 0.02);
+}
+
+.dayCell.otherMonth {
+    background: var(--color-bg-main);
+}
+
+.dayCell.otherMonth .dayNumber {
+    color: var(--color-text-secondary);
+    opacity: 0.5;
+}
+
+.dayCell.today {
+    background: rgba(67, 24, 255, 0.05);
+}
+
+.dayCell.today .dayNumber {
+    background: var(--color-secondary);
+    color: white;
+}
+
+.dayNumber {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    border-radius: var(--radius-full);
+    margin-bottom: var(--spacing-xs);
+}
+
+.events {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.event {
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.event:hover {
+    transform: translateX(2px);
+}
+
+.event.visitaTecnica {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3B82F6;
+    border-left: 3px solid #3B82F6;
+}
+
+.event.instalacao {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10B981;
+    border-left: 3px solid #10B981;
+}
+
+.event.cancelled {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+.moreEvents {
+    font-size: 0.7rem;
+    color: var(--color-text-secondary);
+    padding: 2px 8px;
+}
+
+/* Legend */
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: var(--color-bg-card);
+    border-radius: var(--radius-md);
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+.legendDot {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+}
+
+.legendDot.visitaTecnica {
+    background: #3B82F6;
+}
+
+.legendDot.instalacao {
+    background: #10B981;
+}
+
+/* Skeleton */
+.skeletonCell {
+    min-height: 120px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .dayCell {
+        min-height: 80px;
+    }
+
+    .event {
+        font-size: 0.7rem;
+        padding: 2px 6px;
+    }
+}

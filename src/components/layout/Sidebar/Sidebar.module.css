@@ -1,0 +1,288 @@
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--color-bg-sidebar);
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    z-index: 200;
+    box-shadow: var(--shadow-lg);
+}
+
+.logo {
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-lg);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.logoIcon {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-light));
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--spacing-sm);
+}
+
+.logoIcon svg {
+    width: 24px;
+    height: 24px;
+    color: white;
+}
+
+.logoText {
+    display: flex;
+    flex-direction: column;
+}
+
+.logoTitle {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--color-text-primary);
+    line-height: 1.1;
+}
+
+.logoSubtitle {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.5px;
+}
+
+.nav {
+    flex: 1;
+    padding: var(--spacing-lg);
+    overflow-y: auto;
+}
+
+.navSection {
+    margin-bottom: var(--spacing-lg);
+}
+
+.navLabel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-sm);
+    padding-left: var(--spacing-sm);
+}
+
+.navItems {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all var(--transition-normal);
+    text-decoration: none;
+}
+
+.navLink:hover {
+    background: var(--color-bg-main);
+    color: var(--color-text-primary);
+}
+
+.navLink.active {
+    background: linear-gradient(135deg, rgba(67, 24, 255, 0.1), rgba(67, 24, 255, 0.05));
+    color: var(--color-secondary);
+    font-weight: 600;
+}
+
+.navLink.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 4px;
+    height: 24px;
+    background: var(--color-secondary);
+    border-radius: 0 4px 4px 0;
+}
+
+.navIcon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.navBadge {
+    margin-left: auto;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    background: var(--color-status-red);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer {
+    padding: var(--spacing-lg);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.statsCard {
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary-light));
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    color: white;
+}
+
+.statsTitle {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    margin-bottom: var(--spacing-xs);
+}
+
+.statsValue {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: var(--spacing-xs);
+}
+
+.statsLabel {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.statsProgress {
+    margin-top: var(--spacing-sm);
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.statsProgressBar {
+    height: 100%;
+    background: white;
+    border-radius: var(--radius-full);
+    transition: width var(--transition-slow);
+}
+
+/* Goal Editing */
+.statsTitleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-xs);
+}
+
+.editBtn {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.editBtn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.editForm {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.inputGroup {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 4px 8px;
+}
+
+.inputPrefix,
+.inputSuffix {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.goalInput {
+    flex: 1;
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 4px 8px;
+}
+
+.goalInput::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.editActions {
+    display: flex;
+    gap: 8px;
+}
+
+.cancelBtn,
+.saveBtn {
+    flex: 1;
+    height: 32px;
+    border-radius: 6px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancelBtn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.cancelBtn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.saveBtn {
+    background: white;
+    color: var(--color-secondary);
+}
+
+.saveBtn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.cancelBtn:disabled,
+.saveBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

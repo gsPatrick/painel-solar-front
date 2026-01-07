@@ -1,0 +1,538 @@
+.container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.splitLayout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    height: calc(100vh - 80px);
+    /* Adjust based on header height */
+}
+
+.chatPanel {
+    width: 400px;
+    /* Fixed width or flex percentage */
+    min-width: 350px;
+    background: white;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.kanbanPanel {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: #F4F7FE;
+    display: flex;
+    flex-direction: column;
+}
+
+.chatHeader {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+    background: white;
+}
+
+.chatBody {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+    background: #efe7dd;
+    /* WhatsApp-like background color */
+    background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+    /* Optional WA bg pattern */
+    display: flex;
+    flex-direction: column;
+}
+
+.chatFooter {
+    padding: var(--spacing-md);
+    background: #f0f2f5;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.emptyStateContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--color-text-secondary);
+    text-align: center;
+    padding: var(--spacing-xl);
+    background: #f0f2f5;
+}
+
+.qrPlaceholder {
+    width: 200px;
+    height: 200px;
+    background: white;
+    margin-bottom: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--color-bg-card);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.filters {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.filterGroup {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.filterLabel {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+.filterSelect {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-main);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.filterSelect:hover {
+    border-color: var(--color-secondary);
+}
+
+.filterSelect:focus {
+    outline: none;
+    border-color: var(--color-secondary);
+    box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-normal);
+}
+
+.btnPrimary {
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary-light));
+    color: white;
+}
+
+.btnPrimary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btnSecondary {
+    background: var(--color-bg-main);
+    color: var(--color-text-primary);
+}
+
+.btnSecondary:hover {
+    background: var(--color-bg-main);
+    color: var(--color-secondary);
+}
+
+/* Lead Modal */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: var(--spacing-xl);
+}
+
+.modal {
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    background: var(--color-bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.modalTitle {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.closeBtn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.closeBtn:hover {
+    background: var(--color-bg-main);
+    color: var(--color-text-primary);
+}
+
+.modalBody {
+    padding: var(--spacing-lg);
+    overflow-y: auto;
+    flex: 1;
+}
+
+.infoGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.infoItem {
+    padding: var(--spacing-md);
+    background: var(--color-bg-main);
+    border-radius: var(--radius-md);
+}
+
+.infoLabel {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.infoValue {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.sectionTitle {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.messageList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.messageItem {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    position: relative;
+    margin-bottom: var(--spacing-xs);
+}
+
+.user {
+    background: #F4F7FE;
+    /* Light gray for user */
+    color: var(--color-text-primary);
+    align-self: flex-start;
+    /* User (client) on LEFT */
+    border-bottom-left-radius: 4px;
+    max-width: 85%;
+}
+
+.ai {
+    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-primary) 100%);
+    /* Purple gradient for Bot */
+    color: white;
+    align-self: flex-end;
+    /* Bot (us) on RIGHT */
+    border-bottom-right-radius: 4px;
+    max-width: 85%;
+}
+
+.messageTime {
+    font-size: 0.7rem;
+    color: rgba(0, 0, 0, 0.4);
+    margin-top: 4px;
+    text-align: right;
+}
+
+.ai .messageTime {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.modalFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    background: var(--color-bg-main);
+}
+
+.modalActions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+/* Empty Messages */
+.emptyMessages {
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+.emptyIcon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto var(--spacing-sm);
+    opacity: 0.3;
+}
+
+.messageInputGroup {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex: 1;
+}
+
+.messageInput {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    outline: none;
+    background: var(--color-bg-main);
+}
+
+.messageInput:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(67, 24, 255, 0.1);
+}
+
+/* Marketing Data Section */
+.marketingData {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background: rgba(24, 119, 242, 0.05);
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(24, 119, 242, 0.1);
+}
+
+.marketingItem {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.marketingLabel {
+    font-size: 0.7rem;
+    color: #1877F2;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.marketingValue {
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+    font-weight: 500;
+}
+
+/* Detail Modal Enhancements */
+.detailModal {
+    width: 100%;
+    max-width: 700px;
+    max-height: 90vh;
+    background: var(--color-bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.footerActions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.btnDanger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #EF4444;
+}
+
+.btnDanger:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* Delete Pipeline Modal */
+.deleteModal {
+    background: var(--color-bg-card, white);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 450px;
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+}
+
+.deleteModalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border, #eee);
+}
+
+.deleteModalHeader h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.deleteModalContent {
+    padding: var(--spacing-lg);
+}
+
+.deleteModalContent p {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--color-text-secondary);
+}
+
+.leadsWarning {
+    display: flex;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: var(--radius-md);
+    border-left: 3px solid #F59E0B;
+    margin-top: var(--spacing-md);
+}
+
+.leadsWarning p {
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: 0.9rem;
+}
+
+.pipelineSelect {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    margin-top: var(--spacing-sm);
+    background: var(--color-bg-card, white);
+    color: var(--color-text-primary);
+}
+
+.deleteModalActions {
+    display: flex;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-top: 1px solid var(--color-border, #eee);
+    justify-content: flex-end;
+}
+
+.cancelBtn {
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: var(--color-bg-main, #f5f5f5);
+    color: var(--color-text-secondary);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancelBtn:hover:not(:disabled) {
+    background: var(--color-bg-sidebar, #e5e5e5);
+}
+
+.deleteBtn {
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: #EF4444;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.deleteBtn:hover:not(:disabled) {
+    background: #DC2626;
+}
+
+.cancelBtn:disabled,
+.deleteBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

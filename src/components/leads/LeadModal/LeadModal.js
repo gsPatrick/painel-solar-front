@@ -1,0 +1,252 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { User, Phone, DollarSign, Tag, Star } from 'lucide-react';
+import Modal, { modalStyles as styles } from '../../shared/Modal/Modal';
+
+const SOURCES = [
+    { value: 'manual', label: 'Manual' },
+    { value: 'meta_ads', label: 'Meta Ads' },
+    { value: 'whatsapp', label: 'WhatsApp' },
+];
+
+export default function LeadModal({
+    isOpen,
+    onClose,
+    onSubmit,
+    onCreatePipeline,
+    lead = null,
+    pipelines = [],
+    initialPipelineId = '',
+    loading = false,
+}) {
+    const isEditing = !!lead;
+
+    const [formData, setFormData] = useState({
+        name: '',
+        phone: '',
+        source: 'manual',
+        pipeline_id: '',
+        proposal_value: '',
+        system_size_kwp: '',
+        is_important: false,
+    });
+
+    const [errors, setErrors] = useState({});
+
+    useEffect(() => {
+        if (lead) {
+            setFormData({
+                name: lead.name || '',
+                phone: lead.phone || '',
+                source: lead.source || 'manual',
+                pipeline_id: lead.pipeline_id || '',
+                proposal_value: lead.proposal_value || '',
+                system_size_kwp: lead.system_size_kwp || '',
+                is_important: lead.is_important || false,
+            });
+        } else {
+            setFormData({
+                name: '',
+                phone: '',
+                source: 'manual',
+                pipeline_id: initialPipelineId || pipelines[0]?.id || '',
+                proposal_value: '',
+                system_size_kwp: '',
+                is_important: false,
+            });
+        }
+        setErrors({});
+    }, [lead, isOpen, pipelines, initialPipelineId]);
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value,
+        }));
+        if (errors[name]) {
+            setErrors((prev) => ({ ...prev, [name]: null }));
+        }
+    };
+
+    const validate = () => {
+        const newErrors = {};
+        if (!formData.name.trim()) newErrors.name = 'Nome é obrigatório';
+        if (!formData.phone.trim()) newErrors.phone = 'Telefone é obrigatório';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!validate()) return;
+
+        const data = {
+            ...formData,
+            proposal_value: formData.proposal_value ? parseFloat(formData.proposal_value) : null,
+            system_size_kwp: formData.system_size_kwp ? parseFloat(formData.system_size_kwp) : null,
+        };
+
+        onSubmit(data);
+    };
+
+    return (
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={isEditing ? 'Editar Lead' : 'Novo Lead'}
+            subtitle={isEditing ? `Editando ${lead.name}` : 'Adicione um novo lead ao CRM'}
+            icon={User}
+            iconVariant="primary"
+            size="md"
+            footer={
+                <>
+                    <button
+                        type="button"
+                        className={`${styles.btn} ${styles.btnSecondary}`}
+                        onClick={onClose}
+                        disabled={loading}
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="submit"
+                        form="lead-form"
+                        className={`${styles.btn} ${styles.btnPrimary}`}
+                        disabled={loading}
+                    >
+                        {loading ? <span className={styles.spinner} /> : isEditing ? 'Salvar' : 'Criar Lead'}
+                    </button>
+                </>
+            }
+        >
+            <form id="lead-form" onSubmit={handleSubmit} className={`${styles.formGrid} ${styles.cols2}`}>
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+                    <label className={styles.label}>Nome completo</label>
+                    <div className={styles.inputIcon}>
+                        <User size={18} />
+                        <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className={`${styles.input} ${errors.name ? styles.inputError : ''}`}
+                            placeholder="Nome do lead"
+                        />
+                    </div>
+                    {errors.name && <span className={styles.errorText}>{errors.name}</span>}
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>Telefone</label>
+                    <div className={styles.inputIcon}>
+                        <Phone size={18} />
+                        <input
+                            type="tel"
+                            name="phone"
+                            value={formData.phone}
+                            onChange={handleChange}
+                            className={`${styles.input} ${errors.phone ? styles.inputError : ''}`}
+                            placeholder="(11) 99999-9999"
+                        />
+                    </div>
+                    {errors.phone && <span className={styles.errorText}>{errors.phone}</span>}
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>Origem</label>
+                    <select
+                        name="source"
+                        value={formData.source}
+                        onChange={handleChange}
+                        className={styles.select}
+                    >
+                        {SOURCES.map((s) => (
+                            <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <div className={styles.labelRow}>
+                        <label className={styles.label}>Pipeline</label>
+                        {onCreatePipeline && (
+                            <button
+                                type="button"
+                                className={styles.linkBtn}
+                                onClick={onCreatePipeline}
+                            >
+                                + Novo Funil
+                            </button>
+                        )}
+                    </div>
+                    <select
+                        name="pipeline_id"
+                        value={formData.pipeline_id}
+                        onChange={handleChange}
+                        className={styles.select}
+                        disabled={pipelines.length === 0}
+                    >
+                        {pipelines.length === 0 ? (
+                            <option value="">Nenhum funil disponível</option>
+                        ) : (
+                            pipelines.map((p) => (
+                                <option key={p.id} value={p.id}>{p.title}</option>
+                            ))
+                        )}
+                    </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>
+                        Valor da Proposta
+                        <span className={styles.labelOptional}>(opcional)</span>
+                    </label>
+                    <div className={styles.inputIcon}>
+                        <DollarSign size={18} />
+                        <input
+                            type="number"
+                            name="proposal_value"
+                            value={formData.proposal_value}
+                            onChange={handleChange}
+                            className={styles.input}
+                            placeholder="0.00"
+                            step="0.01"
+                        />
+                    </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>
+                        Tamanho do Sistema (kWp)
+                        <span className={styles.labelOptional}>(opcional)</span>
+                    </label>
+                    <input
+                        type="number"
+                        name="system_size_kwp"
+                        value={formData.system_size_kwp}
+                        onChange={handleChange}
+                        className={styles.input}
+                        placeholder="0.00"
+                        step="0.01"
+                    />
+                </div>
+
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+                    <label className={styles.checkbox}>
+                        <input
+                            type="checkbox"
+                            name="is_important"
+                            checked={formData.is_important}
+                            onChange={handleChange}
+                            className={styles.checkboxInput}
+                        />
+                        <Star size={18} style={{ color: formData.is_important ? '#F97316' : '#A3AED0' }} />
+                        <span className={styles.checkboxLabel}>Marcar como lead importante</span>
+                    </label>
+                </div>
+            </form>
+        </Modal>
+    );
+}

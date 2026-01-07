@@ -1,0 +1,247 @@
+.leadCard {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+    cursor: grab;
+    transition: all var(--transition-normal);
+    border-left: 4px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.leadCard:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+
+.leadCard.dragging {
+    opacity: 0.8;
+    cursor: grabbing;
+    box-shadow: var(--shadow-xl);
+    transform: rotate(2deg) scale(1.02);
+}
+
+/* SLA Status Colors */
+.leadCard.statusGreen {
+    border-left-color: var(--color-status-green);
+    background: linear-gradient(90deg, var(--color-status-green-bg) 0%, var(--color-bg-card) 30%);
+}
+
+.leadCard.statusYellow {
+    border-left-color: var(--color-status-yellow);
+    background: linear-gradient(90deg, var(--color-status-yellow-bg) 0%, var(--color-bg-card) 30%);
+}
+
+.leadCard.statusRed {
+    border-left-color: var(--color-status-red);
+    background: linear-gradient(90deg, var(--color-status-red-bg) 0%, var(--color-bg-card) 30%);
+}
+
+/* Important Lead Glow */
+.leadCard.important {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.2), var(--shadow-sm);
+    border: 1px solid rgba(249, 115, 22, 0.2);
+}
+
+.leadCard.important:hover {
+    box-shadow: 0 0 30px rgba(249, 115, 22, 0.3), var(--shadow-lg);
+}
+
+.header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-sm);
+}
+
+.leadName {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.leadName.important {
+    font-weight: 700;
+}
+
+.importantIcon {
+    color: var(--color-accent);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.sourceIcon {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sourceIcon.meta {
+    background: rgba(24, 119, 242, 0.1);
+    color: #1877F2;
+}
+
+.sourceIcon.whatsapp {
+    background: rgba(37, 211, 102, 0.1);
+    color: #25D366;
+}
+
+.sourceIcon.manual {
+    background: rgba(107, 114, 128, 0.1);
+    color: #6B7280;
+}
+
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.phone {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.campaignBadge {
+    font-size: 0.7rem;
+    color: #1877F2;
+    background: rgba(24, 119, 242, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.value {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--color-status-green);
+}
+
+.value.empty {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.lastInteraction {
+    font-size: 0.7rem;
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.slaIndicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.slaIndicator.green {
+    background: var(--color-status-green);
+    box-shadow: 0 0 6px var(--color-status-green);
+}
+
+.slaIndicator.yellow {
+    background: var(--color-status-yellow);
+    box-shadow: 0 0 6px var(--color-status-yellow);
+}
+
+.slaIndicator.red {
+    background: var(--color-status-red);
+    box-shadow: 0 0 6px var(--color-status-red);
+    animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+
+    0%,
+    100% {
+        box-shadow: 0 0 6px var(--color-status-red);
+    }
+
+    50% {
+        box-shadow: 0 0 12px var(--color-status-red);
+    }
+}
+
+/* Skeleton */
+.skeleton {
+    pointer-events: none;
+}
+
+.skeletonName {
+    height: 18px;
+    width: 70%;
+    margin-bottom: var(--spacing-sm);
+}
+
+.skeletonPhone {
+    height: 14px;
+    width: 50%;
+    margin-bottom: var(--spacing-sm);
+}
+
+.skeletonValue {
+    height: 16px;
+    width: 40%;
+}
+
+/* Alert Pulse Animation for Overdue Leads */
+.alertPulse {
+    animation: alertPulseAnim 1s ease-in-out infinite;
+}
+
+@keyframes alertPulseAnim {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.1);
+    }
+}
