@@ -3,16 +3,22 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { io } from 'socket.io-client';
-import { AlertTriangle, MessageSquare, Play, X } from 'lucide-react';
+import { AlertTriangle, MessageSquare, Play, X, Loader2 } from 'lucide-react';
 import styles from './AiPauseModal.module.css';
 import { leadService } from '@/services/api';
 
 export default function AiPauseModal() {
     const [notification, setNotification] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
-        const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000');
+        // Fix socket URL to use root if API is suffixed
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const socketUrl = apiUrl.replace(/\/api\/?$/, ''); // Remove /api or /api/ from end
+
+        console.log('Connecting socket to:', socketUrl);
+        const socket = io(socketUrl);
 
         socket.on('ai_paused_notification', (data) => {
             console.log('AI Paused Notification:', data);
@@ -35,6 +41,7 @@ export default function AiPauseModal() {
     };
 
     const handleActivateAi = async () => {
+        setIsLoading(true);
         try {
             await leadService.updateAiStatus(notification.leadId, 'active');
             setNotification(null);
@@ -42,6 +49,8 @@ export default function AiPauseModal() {
         } catch (error) {
             console.error('Failed to activate AI:', error);
             alert('Erro ao ativar IA. Tente novamente.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -76,9 +85,13 @@ export default function AiPauseModal() {
                             Continuar desativada
                         </button>
 
-                        <button className={`${styles.button} ${styles.outline}`} onClick={handleActivateAi}>
-                            <Play />
-                            Ativar IA
+                        <button
+                            className={`${styles.button} ${styles.outline}`}
+                            onClick={handleActivateAi}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? <Loader2 className={styles.spin} size={20} /> : <Play size={20} />}
+                            {isLoading ? 'Ativando...' : 'Ativar IA'}
                         </button>
                     </div>
                 </div>
