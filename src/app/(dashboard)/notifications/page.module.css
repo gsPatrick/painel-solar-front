@@ -1,0 +1,342 @@
+.container {
+    padding: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.iconWrapper {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #4318FF 0%, #7C3AED 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 4px 12px rgba(67, 24, 255, 0.25);
+}
+
+.header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.header p {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin: 4px 0 0 0;
+}
+
+.addBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #4318FF 0%, #7C3AED 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(67, 24, 255, 0.25);
+}
+
+.addBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(67, 24, 255, 0.35);
+}
+
+/* Form Modal */
+.formOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.formCard {
+    background: var(--color-bg-card);
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid var(--color-border);
+}
+
+.formCard h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 24px 0;
+}
+
+.formGroup {
+    margin-bottom: 20px;
+}
+
+.formGroup label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    margin-bottom: 8px;
+}
+
+.formGroup input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--color-bg-input);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+    transition: all 0.2s;
+}
+
+.formGroup input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
+}
+
+.formActions {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.cancelBtn,
+.saveBtn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancelBtn {
+    background: var(--color-bg-hover);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.saveBtn {
+    background: linear-gradient(135deg, #4318FF 0%, #7C3AED 100%);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(67, 24, 255, 0.25);
+}
+
+/* Content */
+.content {
+    min-height: 300px;
+}
+
+.loading,
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--color-text-secondary);
+}
+
+.empty svg {
+    opacity: 0.3;
+    margin-bottom: 16px;
+}
+
+.empty h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 8px 0;
+}
+
+.empty p {
+    font-size: 0.875rem;
+    max-width: 300px;
+}
+
+/* Numbers List */
+.numbersList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.numberCard {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    transition: all 0.2s;
+}
+
+.numberCard:hover {
+    border-color: var(--color-primary);
+}
+
+.numberCard.inactive {
+    opacity: 0.6;
+    background: var(--color-bg-hover);
+}
+
+.numberInfo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    background: rgba(67, 24, 255, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+}
+
+.numberInfo h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.phone {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+.numberActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.statusBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #EF4444;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.statusBtn.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22C55E;
+}
+
+.iconBtn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-hover);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.iconBtn:hover {
+    background: var(--color-bg-card);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.iconBtn.deleteBtn:hover {
+    color: #EF4444;
+    border-color: #EF4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+/* Info Box */
+.infoBox {
+    margin-top: 32px;
+    padding: 20px;
+    background: rgba(67, 24, 255, 0.05);
+    border: 1px solid rgba(67, 24, 255, 0.1);
+    border-radius: 12px;
+}
+
+.infoBox h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 8px 0;
+}
+
+.infoBox p {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .numberCard {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .numberActions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
