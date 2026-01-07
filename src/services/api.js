@@ -202,6 +202,11 @@ export const leadService = {
         const response = await api.put(`/leads/${id}/restore`);
         return response.data;
     },
+
+    async updateAiStatus(id, aiStatus) {
+        const response = await api.patch(`/leads/${id}/ai-status`, { ai_status: aiStatus });
+        return response.data;
+    },
 };
 
 // ============================================
@@ -352,6 +357,40 @@ export const dashboardService = {
                 color: p.color,
             }));
 
+            // Calculate time-series data for charts (last 6 months)
+            const monthLabels = [];
+            const leadsPerMonth = [];
+            const conversionsPerMonth = [];
+
+            const today = new Date();
+            for (let i = 5; i >= 0; i--) {
+                const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                const monthName = monthDate.toLocaleDateString('pt-BR', { month: 'short' });
+                const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+                const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+
+                monthLabels.push(monthName.charAt(0).toUpperCase() + monthName.slice(1).replace('.', ''));
+
+                // Count leads created in this month
+                const leadsInMonth = leads.filter(l => {
+                    const createdAt = new Date(l.createdAt || l.created_at);
+                    return createdAt >= monthStart && createdAt <= monthEnd;
+                }).length;
+                leadsPerMonth.push(leadsInMonth);
+
+                // Count conversions (leads in 'Fechado' pipeline created this month)
+                const closedPipeline = pipelines.find(p =>
+                    p.title.toLowerCase().includes('fechado') ||
+                    p.title.toLowerCase().includes('ganho') ||
+                    p.title.toLowerCase().includes('convertido')
+                );
+                const conversionsInMonth = closedPipeline?.leads?.filter(l => {
+                    const createdAt = new Date(l.createdAt || l.created_at);
+                    return createdAt >= monthStart && createdAt <= monthEnd;
+                }).length || 0;
+                conversionsPerMonth.push(conversionsInMonth);
+            }
+
             return {
                 totalLeads,
                 importantLeads,
@@ -363,6 +402,12 @@ export const dashboardService = {
                 sourceData,
                 funnelData,
                 pipelines,
+                // Time-series data for charts
+                leadsTimeSeries: {
+                    labels: monthLabels,
+                    leads: leadsPerMonth,
+                    conversions: conversionsPerMonth,
+                },
             };
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);
@@ -449,5 +494,30 @@ export const whatsAppService = {
     },
 };
 
-export default api;
+// ============================================
+// SYSTEM SETTINGS SERVICES (AI Configuration)
+// ============================================
 
+export const systemSettingsService = {
+    async getAll() {
+        const response = await api.get('/system-settings');
+        return response.data;
+    },
+
+    async get(key) {
+        const response = await api.get(`/system-settings/${key}`);
+        return response.data;
+    },
+
+    async update(key, value) {
+        const response = await api.put(`/system-settings/${key}`, { value });
+        return response.data;
+    },
+
+    async bulkUpdate(settings) {
+        const response = await api.put('/system-settings', settings);
+        return response.data;
+    },
+};
+
+export default api;

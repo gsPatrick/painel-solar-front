@@ -63,13 +63,13 @@ export default function AnalyticsPage() {
         }
     };
 
-    // Prepare chart data from real stats or fallbacks if data is sparse
+    // Prepare chart data from real stats
     const lineChartData = {
-        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'], // Static for now, would need historical data API
+        labels: stats?.leadsTimeSeries?.labels || ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
         datasets: [
             {
                 label: 'Leads',
-                data: [65, 78, 90, 81, 96, stats?.totalLeads || 120], // Integrating real total point
+                data: stats?.leadsTimeSeries?.leads || [0, 0, 0, 0, 0, 0],
                 borderColor: '#4318FF',
                 backgroundColor: 'rgba(67, 24, 255, 0.1)',
                 fill: true,
@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
             },
             {
                 label: 'Conversões',
-                data: [12, 15, 18, 14, 20, Math.floor((stats?.totalLeads || 0) * 0.2)], // Approx
+                data: stats?.leadsTimeSeries?.conversions || [0, 0, 0, 0, 0, 0],
                 borderColor: '#10B981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
                 fill: true,

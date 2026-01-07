@@ -254,18 +254,19 @@ export default function MessagesPage() {
         if (!selectedLead) return;
         setTogglingAi(true);
         try {
-            const newStatus = !selectedLead.human_takeover;
-            const updatedLead = await leadService.update(selectedLead.id, {
-                human_takeover: newStatus
-            });
+            // Toggle between 'active' and 'paused'
+            const currentStatus = selectedLead.ai_status || 'active';
+            const newStatus = currentStatus === 'active' ? 'paused' : 'active';
+
+            const updatedLead = await leadService.updateAiStatus(selectedLead.id, newStatus);
 
             // Update local state
             setSelectedLead(updatedLead);
             setLeads(prev => prev.map(l => l.id === updatedLead.id ? updatedLead : l));
 
             // Show feedback
-            const action = newStatus ? 'pausada' : 'ativada';
-            alert(`Sol ${action} para este lead com sucesso!`);
+            const action = newStatus === 'active' ? 'ativada' : 'pausada';
+            alert(`IA (Daniela) ${action} para este lead com sucesso!`);
         } catch (error) {
             console.error('Error toggling AI:', error);
             alert('Erro ao alterar status da IA.');
@@ -633,9 +634,9 @@ export default function MessagesPage() {
                                         className={styles.aiToggleBtn}
                                         onClick={handleToggleAi}
                                         disabled={togglingAi}
-                                        title={selectedLead.human_takeover ? "Reativar IA (Sol)" : "Pausar IA (Sol)"}
+                                        title={selectedLead.ai_status !== 'active' ? "Reativar IA (Daniela)" : "Pausar IA (Daniela)"}
                                         style={{
-                                            backgroundColor: selectedLead.human_takeover ? '#EF4444' : '#10B981',
+                                            backgroundColor: selectedLead.ai_status !== 'active' ? '#EF4444' : '#10B981',
                                             color: 'white',
                                             padding: '6px 12px',
                                             borderRadius: '20px',
@@ -650,7 +651,7 @@ export default function MessagesPage() {
                                         }}
                                     >
                                         <Bot size={16} />
-                                        {togglingAi ? '...' : selectedLead.human_takeover ? 'IA Pausada' : 'IA Ativa'}
+                                        {togglingAi ? '...' : selectedLead.ai_status !== 'active' ? 'IA Pausada' : 'IA Ativa'}
                                     </button>
                                     <button className={styles.moreBtn}>
                                         <MoreVertical size={20} />
