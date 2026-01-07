@@ -3,6 +3,7 @@
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ToastProvider } from '@/components/shared/Toast/Toast';
 import { NotificationProvider } from '@/contexts/NotificationContext';
+import AiPauseModal from '@/components/shared/AiPauseModal/AiPauseModal';
 import '@/styles/globals.css';
 
 export default function RootLayout({ children }) {
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
         <ThemeProvider>
           <ToastProvider>
             <NotificationProvider>
+              <AiPauseModal />
               {children}
             </NotificationProvider>
           </ToastProvider>

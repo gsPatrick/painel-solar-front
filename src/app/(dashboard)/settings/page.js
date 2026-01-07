@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Palette,
     Bell,
     Save,
     Check,
@@ -14,15 +13,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { settingsService } from '@/services/api';
 import styles from './page.module.css';
 
-const COLORS = [
-    '#4318FF', '#6AD2FF', '#F97316', '#10B981', '#8B5CF6',
-    '#EC4899', '#14B8A6', '#F59E0B', '#EF4444', '#6366F1'
-];
-
 export default function SettingsPage() {
     const {
-        primaryColor,
-        updatePrimaryColor,
         settings: globalSettings,
         updateSettings
     } = useTheme();
@@ -80,39 +72,7 @@ export default function SettingsPage() {
                     <p className={styles.subtitle}>Personalize o sistema conforme suas preferências</p>
                 </div>
 
-                {/* Appearance */}
-                <motion.div
-                    className={styles.section}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0 }}
-                >
-                    <div className={styles.sectionHeader}>
-                        <div className={`${styles.sectionIcon} ${styles.primary}`}>
-                            <Palette size={22} />
-                        </div>
-                        <div>
-                            <h2 className={styles.sectionTitle}>Aparência</h2>
-                            <p className={styles.sectionSubtitle}>Personalize o sistema</p>
-                        </div>
-                    </div>
 
-                    <div className={styles.formGrid}>
-                        <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-                            <label className={styles.label}>Cor Principal</label>
-                            <div className={styles.colorGrid}>
-                                {COLORS.map(color => (
-                                    <button
-                                        key={color}
-                                        className={`${styles.colorBtn} ${primaryColor === color ? styles.active : ''}`}
-                                        style={{ background: color }}
-                                        onClick={() => updatePrimaryColor(color)}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
 
                 {/* Monthly Goal */}
                 <motion.div
