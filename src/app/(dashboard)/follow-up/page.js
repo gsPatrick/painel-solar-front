@@ -432,14 +432,15 @@ export default function FollowUpPage() {
                     >
                         <div className={styles.cardHeader}>
                             <Users size={20} />
-                            <h2>Regras Avançadas por Etapa</h2>
+                            <h2>Régua de Follow-up (Primeiro Contato)</h2>
                         </div>
                         <p className={styles.cardDescription}>
-                            Defina réguas específicas para cada etapa do funil (ex: 1h, 3h, 24h).
+                            Configure a sequência de mensagens automáticas para leads que <strong>não responderam</strong>.<br />
+                            <small style={{ color: '#888' }}>Ex: 1 hora após silêncio → 3 horas → 24 horas. Aplica-se apenas ao funil "Primeiro Contato".</small>
                         </p>
 
                         <div className={styles.pipelinesList}>
-                            {pipelines.map(pipeline => (
+                            {pipelines.filter(p => p.title?.toLowerCase().includes('primeiro') || p.order_index === 0).slice(0, 1).map(pipeline => (
                                 <div key={pipeline.id} className={styles.pipelineItem}>
                                     <div
                                         className={styles.pipelineHeader}
