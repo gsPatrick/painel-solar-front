@@ -128,23 +128,29 @@ export default function FollowUpPage() {
 
     const handleAddRule = async (pipelineId, valuesKey = null) => {
         const key = valuesKey || pipelineId;
-        const values = newRuleValues[key] || { delay: 1, message: '' };
+        const values = newRuleValues[key] || { delayValue: 1, delayUnit: 'hours', message: '' };
 
-        // Calculate next step number based on all rules (for first pipeline)
+        // Convert to hours (backend expects hours)
+        let delayHours = Number(values.delayValue || 1);
+        if (values.delayUnit === 'minutes') {
+            delayHours = delayHours / 60; // Convert minutes to hours
+        }
+
+        // Calculate next step number
         const nextStep = rules.length + 1;
 
         try {
             const newRule = await followupService.createRule({
                 pipeline_id: pipelineId,
                 step_number: nextStep,
-                delay_hours: Number(values.delay || 1),
+                delay_hours: delayHours,
                 message_template: values.message || `Olá {nome}, tudo bem?`
             });
 
             setRules([...rules, newRule]);
             setNewRuleValues(prev => ({
                 ...prev,
-                [key]: { delay: '', message: '' }
+                [key]: { delayValue: '', delayUnit: 'hours', message: '' }
             }));
         } catch (err) {
             console.error('Error creating rule:', err);
@@ -479,48 +485,109 @@ export default function FollowUpPage() {
                             </table>
 
                             {/* Add Rule Form */}
-                            <div className={styles.addRuleForm} style={{ marginTop: '20px', padding: '16px', background: 'rgba(67, 24, 255, 0.05)', borderRadius: '8px' }}>
-                                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>
-                                    <Plus size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
+                            <div style={{
+                                marginTop: '24px',
+                                padding: '20px',
+                                background: 'linear-gradient(135deg, rgba(67, 24, 255, 0.08) 0%, rgba(67, 24, 255, 0.02) 100%)',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(67, 24, 255, 0.15)'
+                            }}>
+                                <h4 style={{ margin: '0 0 16px 0', fontSize: '1rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Plus size={18} style={{ color: 'var(--color-primary)' }} />
                                     Adicionar Nova Regra
                                 </h4>
-                                <div className={styles.inputGroupRow}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <label style={{ fontSize: '0.75rem', color: '#888' }}>Delay (horas)</label>
-                                        <input
-                                            type="number"
-                                            placeholder="Ex: 1"
-                                            min="0.5"
-                                            step="0.5"
-                                            className={styles.inputSmall}
-                                            value={newRuleValues['default']?.delay || ''}
-                                            onChange={(e) => handleNewRuleChange('default', 'delay', e.target.value)}
-                                            style={{ width: '100px' }}
-                                        />
+
+                                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                                    {/* Delay Input Group */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                        <label style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
+                                            Tempo de espera
+                                        </label>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <input
+                                                type="number"
+                                                placeholder="Ex: 30"
+                                                min="1"
+                                                step="1"
+                                                value={newRuleValues['default']?.delayValue || ''}
+                                                onChange={(e) => handleNewRuleChange('default', 'delayValue', e.target.value)}
+                                                style={{
+                                                    width: '80px',
+                                                    padding: '10px 12px',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid var(--color-border)',
+                                                    background: 'var(--color-bg-input)',
+                                                    color: 'var(--color-text-primary)',
+                                                    fontSize: '0.9rem'
+                                                }}
+                                            />
+                                            <select
+                                                value={newRuleValues['default']?.delayUnit || 'hours'}
+                                                onChange={(e) => handleNewRuleChange('default', 'delayUnit', e.target.value)}
+                                                style={{
+                                                    padding: '10px 12px',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid var(--color-border)',
+                                                    background: 'var(--color-bg-input)',
+                                                    color: 'var(--color-text-primary)',
+                                                    fontSize: '0.9rem',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                <option value="minutes">Minutos</option>
+                                                <option value="hours">Horas</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                                        <label style={{ fontSize: '0.75rem', color: '#888' }}>Mensagem (use {'{nome}'} para nome do lead)</label>
+
+                                    {/* Message Input */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '250px' }}>
+                                        <label style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
+                                            Mensagem (use {'{nome}'} para personalizar)
+                                        </label>
                                         <input
                                             type="text"
-                                            placeholder="Ex: Oi {nome}, vi que começamos seu atendimento..."
-                                            className={styles.inputFlex}
+                                            placeholder="Ex: Oi {nome}, ainda tem interesse em energia solar?"
                                             value={newRuleValues['default']?.message || ''}
                                             onChange={(e) => handleNewRuleChange('default', 'message', e.target.value)}
+                                            style={{
+                                                padding: '10px 12px',
+                                                borderRadius: '8px',
+                                                border: '1px solid var(--color-border)',
+                                                background: 'var(--color-bg-input)',
+                                                color: 'var(--color-text-primary)',
+                                                fontSize: '0.9rem'
+                                            }}
                                         />
                                     </div>
+
+                                    {/* Add Button */}
                                     <button
-                                        className={styles.addBtn}
                                         onClick={() => {
                                             const firstPipeline = pipelines[0];
                                             if (firstPipeline) {
                                                 handleAddRule(firstPipeline.id, 'default');
                                             } else {
-                                                alert('Erro: Nenhum pipeline encontrado. Verifique as configurações do Kanban.');
+                                                alert('Erro: Nenhum pipeline encontrado.');
                                             }
                                         }}
-                                        style={{ alignSelf: 'flex-end', padding: '10px 20px' }}
+                                        style={{
+                                            padding: '10px 24px',
+                                            borderRadius: '8px',
+                                            border: 'none',
+                                            background: 'var(--color-primary)',
+                                            color: 'white',
+                                            fontSize: '0.9rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            transition: 'all 0.2s',
+                                            boxShadow: '0 4px 12px rgba(67, 24, 255, 0.25)'
+                                        }}
                                     >
-                                        <Plus size={18} /> Adicionar Regra
+                                        <Plus size={18} /> Adicionar
                                     </button>
                                 </div>
                             </div>
