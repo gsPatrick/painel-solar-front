@@ -13,10 +13,14 @@ import {
     Send,
     Play,
     Pause,
-    Settings
+    Settings,
+    Trash2,
+    Plus,
+    ChevronDown,
+    ChevronUp
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
-import { systemSettingsService, followupService, leadService } from '@/services/api';
+import { systemSettingsService, followupService, leadService, pipelineService } from '@/services/api';
 import styles from './page.module.css';
 
 export default function FollowUpPage() {
@@ -32,11 +36,18 @@ export default function FollowUpPage() {
     const [followupMessage, setFollowupMessage] = useState('');
     const [businessHoursStart, setBusinessHoursStart] = useState(8);
     const [businessHoursEnd, setBusinessHoursEnd] = useState(20);
+    const [systemPrompt, setSystemPrompt] = useState('');
 
     // Leads state
     const [pendingLeads, setPendingLeads] = useState([]);
     const [approvalLeads, setApprovalLeads] = useState([]);
     const [loadingLeads, setLoadingLeads] = useState(false);
+
+    // Rules state
+    const [pipelines, setPipelines] = useState([]);
+    const [rules, setRules] = useState([]);
+    const [expandedPipelines, setExpandedPipelines] = useState({});
+    const [newRuleValues, setNewRuleValues] = useState({}); // { [pipelineId]: { delay: 24, message: '' } }
 
     useEffect(() => {
         loadData();
@@ -46,7 +57,7 @@ export default function FollowUpPage() {
         setLoading(true);
         setError(null);
         try {
-            await Promise.all([loadSettings(), loadLeads()]);
+            await Promise.all([loadSettings(), loadLeads(), loadRulesAndPipelines()]);
         } catch (err) {
             console.error('Error loading data:', err);
             setError('Erro ao carregar dados');
@@ -74,6 +85,9 @@ export default function FollowUpPage() {
             if (settings.business_hours_end) {
                 setBusinessHoursEnd(settings.business_hours_end.value || 20);
             }
+            if (settings.openai_system_prompt) {
+                setSystemPrompt(settings.openai_system_prompt.value || '');
+            }
         } catch (err) {
             console.error('Error loading settings:', err);
         }
@@ -95,6 +109,70 @@ export default function FollowUpPage() {
         }
     };
 
+    const loadRulesAndPipelines = async () => {
+        try {
+            const [fetchedPipelines, fetchedRules] = await Promise.all([
+                pipelineService.getAll(),
+                followupService.getRules()
+            ]);
+            setPipelines(fetchedPipelines || []);
+            setRules(fetchedRules || []);
+        } catch (err) {
+            console.error('Error loading rules:', err);
+        }
+    };
+
+    const togglePipeline = (id) => {
+        setExpandedPipelines(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const handleAddRule = async (pipelineId) => {
+        const values = newRuleValues[pipelineId] || { delay: 24, message: '' };
+
+        // Calculate next step number
+        const pipelineRules = rules.filter(r => r.pipeline_id === pipelineId);
+        const nextStep = pipelineRules.length + 1;
+
+        try {
+            const newRule = await followupService.createRule({
+                pipeline_id: pipelineId,
+                step_number: nextStep,
+                delay_hours: Number(values.delay || 24),
+                message_template: values.message || `Olá {nome}, tudo bem?`
+            });
+
+            setRules([...rules, newRule]);
+            setNewRuleValues(prev => ({
+                ...prev,
+                [pipelineId]: { delay: 24, message: '' }
+            }));
+        } catch (err) {
+            console.error('Error creating rule:', err);
+            alert('Erro ao criar regra');
+        }
+    };
+
+    const handleDeleteRule = async (id) => {
+        if (!confirm('Tem certeza que deseja excluir esta regra?')) return;
+        try {
+            await followupService.deleteRule(id);
+            setRules(rules.filter(r => r.id !== id));
+        } catch (err) {
+            console.error('Error deleting rule:', err);
+            alert('Erro ao excluir regra');
+        }
+    };
+
+    const handleNewRuleChange = (pipelineId, field, value) => {
+        setNewRuleValues(prev => ({
+            ...prev,
+            [pipelineId]: {
+                ...prev[pipelineId],
+                [field]: value
+            }
+        }));
+    };
+
     const handleSave = async () => {
         setSaving(true);
         setSaved(false);
@@ -107,6 +185,7 @@ export default function FollowUpPage() {
                 max_followups: String(maxFollowups),
                 business_hours_start: String(businessHoursStart),
                 business_hours_end: String(businessHoursEnd),
+                openai_system_prompt: systemPrompt,
             });
 
             setSaved(true);
@@ -316,6 +395,145 @@ export default function FollowUpPage() {
                             placeholder="Olá {nome}! Tudo bem? Passando para saber se..."
                             rows={5}
                         />
+                    </motion.div>
+
+                    {/* System Prompt Editor */}
+                    <motion.div
+                        className={styles.card}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.22 }}
+                        style={{ gridColumn: '1 / -1' }}
+                    >
+                        <div className={styles.cardHeader}>
+                            <Settings size={20} />
+                            <h2>Script da IA (Prompt do Sistema)</h2>
+                        </div>
+                        <p className={styles.cardDescription}>
+                            Este é o script que a Sol (IA) segue para atender os leads. Modifique conforme necessário.
+                        </p>
+                        <textarea
+                            className={styles.textarea}
+                            value={systemPrompt}
+                            onChange={(e) => setSystemPrompt(e.target.value)}
+                            placeholder="Você é a Sol, consultora em redução de custos de energia..."
+                            rows={15}
+                            style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}
+                        />
+                    </motion.div>
+
+                    {/* Rules Configuration */}
+                    <motion.div
+                        className={styles.card}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.25 }}
+                        style={{ gridColumn: '1 / -1' }}
+                    >
+                        <div className={styles.cardHeader}>
+                            <Users size={20} />
+                            <h2>Regras Avançadas por Etapa</h2>
+                        </div>
+                        <p className={styles.cardDescription}>
+                            Defina réguas específicas para cada etapa do funil (ex: 1h, 3h, 24h).
+                        </p>
+
+                        <div className={styles.pipelinesList}>
+                            {pipelines.map(pipeline => (
+                                <div key={pipeline.id} className={styles.pipelineItem}>
+                                    <div
+                                        className={styles.pipelineHeader}
+                                        onClick={() => togglePipeline(pipeline.id)}
+                                        style={{ borderLeftColor: pipeline.color || '#ccc' }}
+                                    >
+                                        <div className={styles.pipelineTitle}>
+                                            <span style={{ fontWeight: 600 }}>{pipeline.title}</span>
+                                            <span className={styles.rulesCount}>
+                                                {rules.filter(r => r.pipeline_id === pipeline.id).length} regras
+                                            </span>
+                                        </div>
+                                        {expandedPipelines[pipeline.id] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                    </div>
+
+                                    {expandedPipelines[pipeline.id] && (
+                                        <div className={styles.pipelineRules}>
+                                            <table className={styles.rulesTable}>
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Delay</th>
+                                                        <th>Mensagem</th>
+                                                        <th style={{ width: 50 }}></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {rules
+                                                        .filter(r => r.pipeline_id === pipeline.id)
+                                                        .sort((a, b) => a.step_number - b.step_number)
+                                                        .map(rule => (
+                                                            <tr key={rule.id}>
+                                                                <td>#{rule.step_number}</td>
+                                                                <td>{rule.delay_hours}h</td>
+                                                                <td className={styles.msgPreview}>{rule.message_template}</td>
+                                                                <td>
+                                                                    <button
+                                                                        className={styles.iconBtn}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDeleteRule(rule.id);
+                                                                        }}
+                                                                    >
+                                                                        <Trash2 size={16} />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    {rules.filter(r => r.pipeline_id === pipeline.id).length === 0 && (
+                                                        <tr>
+                                                            <td colSpan="4" style={{ textAlign: 'center', color: '#888', padding: '10px' }}>
+                                                                Nenhuma regra. Usa padrão global ({followupDelayHours}h).
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+
+                                            <div className={styles.addRuleForm}>
+                                                <div className={styles.inputGroupRow}>
+                                                    <input
+                                                        type="number"
+                                                        placeholder="Delay (h)"
+                                                        min="0.1"
+                                                        step="0.1"
+                                                        className={styles.inputSmall}
+                                                        value={newRuleValues[pipeline.id]?.delay || 24}
+                                                        onChange={(e) => handleNewRuleChange(pipeline.id, 'delay', e.target.value)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Mensagem (use {nome})"
+                                                        className={styles.inputFlex}
+                                                        value={newRuleValues[pipeline.id]?.message || ''}
+                                                        onChange={(e) => handleNewRuleChange(pipeline.id, 'message', e.target.value)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                    <button
+                                                        className={styles.addBtn}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleAddRule(pipeline.id);
+                                                        }}
+                                                    >
+                                                        <Plus size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </motion.div>
                 </div>
 

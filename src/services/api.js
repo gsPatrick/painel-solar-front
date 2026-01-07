@@ -556,6 +556,21 @@ export const followupService = {
         const response = await api.post('/followup/run');
         return response.data;
     },
+
+    async getRules() {
+        const response = await api.get('/followup/rules');
+        return response.data;
+    },
+
+    async createRule(ruleData) {
+        const response = await api.post('/followup/rules', ruleData);
+        return response.data;
+    },
+
+    async deleteRule(id) {
+        const response = await api.delete(`/followup/rules/${id}`);
+        return response.data;
+    },
 };
 
 export default api;

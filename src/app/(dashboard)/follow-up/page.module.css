@@ -463,3 +463,137 @@
         margin-top: var(--spacing-sm);
     }
 }
+
+/* Rules UI */
+.pipelinesList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.pipelineItem {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-bg-card);
+}
+
+.pipelineHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 4px solid #ccc;
+    transition: background 0.2s;
+}
+
+.pipelineHeader:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.pipelineTitle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rulesCount {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: var(--color-text-secondary);
+}
+
+.pipelineRules {
+    padding: 16px;
+    border-top: 1px solid var(--color-border);
+}
+
+.rulesTable {
+    width: 100%;
+    margin-bottom: 16px;
+    border-collapse: collapse;
+}
+
+.rulesTable th,
+.rulesTable td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.9rem;
+}
+
+.rulesTable th {
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.msgPreview {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    color: var(--color-text-secondary);
+}
+
+.iconBtn {
+    background: none;
+    border: none;
+    color: var(--color-error);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.iconBtn:hover {
+    background: rgba(255, 59, 48, 0.1);
+}
+
+.addRuleForm {
+    margin-top: 12px;
+}
+
+.inputGroupRow {
+    display: flex;
+    gap: 8px;
+}
+
+.inputSmall {
+    width: 100px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-input);
+    color: var(--color-text-primary);
+}
+
+.inputFlex {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-input);
+    color: var(--color-text-primary);
+}
+
+.addBtn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    background: var(--color-primary);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.9rem;
+}
+
+.addBtn:hover {
+    filter: brightness(1.1);
+}
