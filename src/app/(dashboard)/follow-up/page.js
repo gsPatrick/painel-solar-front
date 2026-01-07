@@ -126,29 +126,29 @@ export default function FollowUpPage() {
         setExpandedPipelines(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
-    const handleAddRule = async (pipelineId) => {
-        const values = newRuleValues[pipelineId] || { delay: 24, message: '' };
+    const handleAddRule = async (pipelineId, valuesKey = null) => {
+        const key = valuesKey || pipelineId;
+        const values = newRuleValues[key] || { delay: 1, message: '' };
 
-        // Calculate next step number
-        const pipelineRules = rules.filter(r => r.pipeline_id === pipelineId);
-        const nextStep = pipelineRules.length + 1;
+        // Calculate next step number based on all rules (for first pipeline)
+        const nextStep = rules.length + 1;
 
         try {
             const newRule = await followupService.createRule({
                 pipeline_id: pipelineId,
                 step_number: nextStep,
-                delay_hours: Number(values.delay || 24),
+                delay_hours: Number(values.delay || 1),
                 message_template: values.message || `Olá {nome}, tudo bem?`
             });
 
             setRules([...rules, newRule]);
             setNewRuleValues(prev => ({
                 ...prev,
-                [pipelineId]: { delay: 24, message: '' }
+                [key]: { delay: '', message: '' }
             }));
         } catch (err) {
             console.error('Error creating rule:', err);
-            alert('Erro ao criar regra');
+            alert('Erro ao criar regra: ' + (err.response?.data?.error || err.message));
         }
     };
 
@@ -439,101 +439,91 @@ export default function FollowUpPage() {
                             <small style={{ color: '#888' }}>Ex: 1 hora após silêncio → 3 horas → 24 horas. Aplica-se apenas ao funil "Primeiro Contato".</small>
                         </p>
 
-                        <div className={styles.pipelinesList}>
-                            {pipelines.filter(p => p.title?.toLowerCase().includes('primeiro') || p.order_index === 0).slice(0, 1).map(pipeline => (
-                                <div key={pipeline.id} className={styles.pipelineItem}>
-                                    <div
-                                        className={styles.pipelineHeader}
-                                        onClick={() => togglePipeline(pipeline.id)}
-                                        style={{ borderLeftColor: pipeline.color || '#ccc' }}
-                                    >
-                                        <div className={styles.pipelineTitle}>
-                                            <span style={{ fontWeight: 600 }}>{pipeline.title}</span>
-                                            <span className={styles.rulesCount}>
-                                                {rules.filter(r => r.pipeline_id === pipeline.id).length} regras
-                                            </span>
-                                        </div>
-                                        {expandedPipelines[pipeline.id] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                                    </div>
-
-                                    {expandedPipelines[pipeline.id] && (
-                                        <div className={styles.pipelineRules}>
-                                            <table className={styles.rulesTable}>
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Delay</th>
-                                                        <th>Mensagem</th>
-                                                        <th style={{ width: 50 }}></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {rules
-                                                        .filter(r => r.pipeline_id === pipeline.id)
-                                                        .sort((a, b) => a.step_number - b.step_number)
-                                                        .map(rule => (
-                                                            <tr key={rule.id}>
-                                                                <td>#{rule.step_number}</td>
-                                                                <td>{rule.delay_hours}h</td>
-                                                                <td className={styles.msgPreview}>{rule.message_template}</td>
-                                                                <td>
-                                                                    <button
-                                                                        className={styles.iconBtn}
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleDeleteRule(rule.id);
-                                                                        }}
-                                                                    >
-                                                                        <Trash2 size={16} />
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    {rules.filter(r => r.pipeline_id === pipeline.id).length === 0 && (
-                                                        <tr>
-                                                            <td colSpan="4" style={{ textAlign: 'center', color: '#888', padding: '10px' }}>
-                                                                Nenhuma regra. Usa padrão global ({followupDelayHours}h).
-                                                            </td>
-                                                        </tr>
-                                                    )}
-                                                </tbody>
-                                            </table>
-
-                                            <div className={styles.addRuleForm}>
-                                                <div className={styles.inputGroupRow}>
-                                                    <input
-                                                        type="number"
-                                                        placeholder="Delay (h)"
-                                                        min="0.1"
-                                                        step="0.1"
-                                                        className={styles.inputSmall}
-                                                        value={newRuleValues[pipeline.id]?.delay || 24}
-                                                        onChange={(e) => handleNewRuleChange(pipeline.id, 'delay', e.target.value)}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Mensagem (use {nome})"
-                                                        className={styles.inputFlex}
-                                                        value={newRuleValues[pipeline.id]?.message || ''}
-                                                        onChange={(e) => handleNewRuleChange(pipeline.id, 'message', e.target.value)}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    />
+                        {/* Simple Rules List & Add Form */}
+                        <div className={styles.pipelineRules}>
+                            {/* Existing Rules Table */}
+                            <table className={styles.rulesTable}>
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Delay</th>
+                                        <th>Mensagem</th>
+                                        <th style={{ width: 50 }}></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {rules.length > 0 ? rules
+                                        .sort((a, b) => a.step_number - b.step_number)
+                                        .map(rule => (
+                                            <tr key={rule.id}>
+                                                <td>#{rule.step_number}</td>
+                                                <td>{rule.delay_hours}h</td>
+                                                <td className={styles.msgPreview}>{rule.message_template}</td>
+                                                <td>
                                                     <button
-                                                        className={styles.addBtn}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleAddRule(pipeline.id);
-                                                        }}
+                                                        className={styles.iconBtn}
+                                                        onClick={() => handleDeleteRule(rule.id)}
                                                     >
-                                                        <Plus size={16} />
+                                                        <Trash2 size={16} />
                                                     </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                                </td>
+                                            </tr>
+                                        )) : (
+                                        <tr>
+                                            <td colSpan="4" style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
+                                                Nenhuma regra configurada. Adicione abaixo.
+                                            </td>
+                                        </tr>
                                     )}
+                                </tbody>
+                            </table>
+
+                            {/* Add Rule Form */}
+                            <div className={styles.addRuleForm} style={{ marginTop: '20px', padding: '16px', background: 'rgba(67, 24, 255, 0.05)', borderRadius: '8px' }}>
+                                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>
+                                    <Plus size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
+                                    Adicionar Nova Regra
+                                </h4>
+                                <div className={styles.inputGroupRow}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <label style={{ fontSize: '0.75rem', color: '#888' }}>Delay (horas)</label>
+                                        <input
+                                            type="number"
+                                            placeholder="Ex: 1"
+                                            min="0.5"
+                                            step="0.5"
+                                            className={styles.inputSmall}
+                                            value={newRuleValues['default']?.delay || ''}
+                                            onChange={(e) => handleNewRuleChange('default', 'delay', e.target.value)}
+                                            style={{ width: '100px' }}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                                        <label style={{ fontSize: '0.75rem', color: '#888' }}>Mensagem (use {'{nome}'} para nome do lead)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Ex: Oi {nome}, vi que começamos seu atendimento..."
+                                            className={styles.inputFlex}
+                                            value={newRuleValues['default']?.message || ''}
+                                            onChange={(e) => handleNewRuleChange('default', 'message', e.target.value)}
+                                        />
+                                    </div>
+                                    <button
+                                        className={styles.addBtn}
+                                        onClick={() => {
+                                            const firstPipeline = pipelines[0];
+                                            if (firstPipeline) {
+                                                handleAddRule(firstPipeline.id, 'default');
+                                            } else {
+                                                alert('Erro: Nenhum pipeline encontrado. Verifique as configurações do Kanban.');
+                                            }
+                                        }}
+                                        style={{ alignSelf: 'flex-end', padding: '10px 20px' }}
+                                    >
+                                        <Plus size={18} /> Adicionar Regra
+                                    </button>
                                 </div>
-                            ))}
+                            </div>
                         </div>
                     </motion.div>
                 </div>
