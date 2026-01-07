@@ -266,7 +266,7 @@ export default function MessagesPage() {
 
             // Show feedback
             const action = newStatus === 'active' ? 'ativada' : 'pausada';
-            alert(`IA (Daniela) ${action} para este lead com sucesso!`);
+            alert(`IA (Sol) ${action} para este lead com sucesso!`);
         } catch (error) {
             console.error('Error toggling AI:', error);
             alert('Erro ao alterar status da IA.');
@@ -634,7 +634,7 @@ export default function MessagesPage() {
                                         className={styles.aiToggleBtn}
                                         onClick={handleToggleAi}
                                         disabled={togglingAi}
-                                        title={selectedLead.ai_status !== 'active' ? "Reativar IA (Daniela)" : "Pausar IA (Daniela)"}
+                                        title={selectedLead.ai_status !== 'active' ? "Reativar IA (Sol)" : "Pausar IA (Sol)"}
                                         style={{
                                             backgroundColor: selectedLead.ai_status !== 'active' ? '#EF4444' : '#10B981',
                                             color: 'white',

@@ -104,7 +104,7 @@ export default function AISettingsPage() {
                     <div className={styles.headerInfo}>
                         <Bot size={28} className={styles.headerIcon} />
                         <div>
-                            <h1>Cérebro da Daniela</h1>
+                            <h1>Cérebro da Sol</h1>
                             <p>Configure o comportamento e respostas da IA</p>
                         </div>
                     </div>
@@ -133,7 +133,7 @@ export default function AISettingsPage() {
                 )}
 
                 <div className={styles.grid}>
-                    {/* Script da Daniela */}
+                    {/* Script da Sol */}
                     <motion.div
                         className={styles.card}
                         initial={{ opacity: 0, y: 20 }}
@@ -142,7 +142,7 @@ export default function AISettingsPage() {
                     >
                         <div className={styles.cardHeader}>
                             <MessageSquare size={20} />
-                            <h2>Script da Daniela</h2>
+                            <h2>Script da Sol</h2>
                         </div>
                         <p className={styles.cardDescription}>
                             Este é o prompt enviado para a IA. Defina a personalidade,
@@ -152,7 +152,7 @@ export default function AISettingsPage() {
                             className={styles.textarea}
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
-                            placeholder="Você é a Daniela, especialista em energia solar..."
+                            placeholder="Você é a Sol, especialista em energia solar..."
                             rows={20}
                         />
                         <div className={styles.charCount}>

@@ -15,7 +15,8 @@ import {
     TrendingUp,
     Pencil,
     X,
-    Check
+    Check,
+    RefreshCw
 } from 'lucide-react';
 import { settingsService } from '@/services/api';
 import { useNotification } from '@/contexts/NotificationContext';
@@ -41,6 +42,7 @@ const navItems = [
     {
         section: 'Sistema',
         items: [
+            { href: '/follow-up', icon: RefreshCw, label: 'Follow-up' },
             { href: '/analytics', icon: TrendingUp, label: 'Analytics' },
             { href: '/settings', icon: Settings, label: 'Configurações' },
         ],

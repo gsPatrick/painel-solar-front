@@ -520,4 +520,42 @@ export const systemSettingsService = {
     },
 };
 
+// ============================================
+// FOLLOW-UP SERVICES
+// ============================================
+
+export const followupService = {
+    async getPending() {
+        const response = await api.get('/followup/pending');
+        return response.data;
+    },
+
+    async getApproval() {
+        const response = await api.get('/followup/approval');
+        return response.data;
+    },
+
+    async send(leadId) {
+        const response = await api.post(`/followup/send/${leadId}`);
+        return response.data;
+    },
+
+    async approve(leadId) {
+        const response = await api.post(`/followup/approve/${leadId}`);
+        return response.data;
+    },
+
+    async setCustomMessage(leadId, message) {
+        const response = await api.put(`/followup/custom/${leadId}`, {
+            custom_followup_message: message,
+        });
+        return response.data;
+    },
+
+    async runJob() {
+        const response = await api.post('/followup/run');
+        return response.data;
+    },
+};
+
 export default api;
