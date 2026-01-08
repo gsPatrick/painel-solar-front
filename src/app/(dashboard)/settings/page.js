@@ -30,7 +30,7 @@ export default function SettingsPage() {
     // Meta Sync State
     const [metaSyncing, setMetaSyncing] = useState(false);
     const [metaSyncResult, setMetaSyncResult] = useState(null);
-    const [metaPageId, setMetaPageId] = useState('');
+    const [metaPageId, setMetaPageId] = useState('534745156397254'); // DGE Energia Alternativa
 
     const [localSettings, setLocalSettings] = useState({
         notifyOverdue: true,
