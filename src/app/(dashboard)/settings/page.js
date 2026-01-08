@@ -73,6 +73,8 @@ export default function SettingsPage() {
                 imported: response.data.imported_count,
                 skipped: response.data.skipped_count,
                 total: response.data.total_found,
+                queued: response.data.queued_for_message,
+                estimatedTime: response.data.queue_status?.estimatedTimeMinutes
             });
         } catch (err) {
             setMetaSyncResult({
@@ -314,9 +316,20 @@ export default function SettingsPage() {
                             >
                                 {metaSyncResult.success ? (
                                     <>
-                                        ✅ <strong>{metaSyncResult.imported}</strong> leads importados e contatados pela IA!
+                                        <div>✅ <strong>{metaSyncResult.imported}</strong> leads processados!</div>
+                                        {metaSyncResult.queued > 0 && (
+                                            <div style={{ marginTop: '8px', fontSize: '0.9rem' }}>
+                                                📬 <strong>{metaSyncResult.queued}</strong> mensagens na fila de envio.
+                                                <br />
+                                                <span style={{ opacity: 0.85 }}>
+                                                    ⏱️ Tempo estimado: ~{metaSyncResult.estimatedTime} min (envio gradual para segurança).
+                                                </span>
+                                            </div>
+                                        )}
                                         {metaSyncResult.skipped > 0 && (
-                                            <span style={{ opacity: 0.7 }}> ({metaSyncResult.skipped} já existiam)</span>
+                                            <div style={{ marginTop: '4px', fontSize: '0.85rem', opacity: 0.7 }}>
+                                                ({metaSyncResult.skipped} já existiam/sem telefone)
+                                            </div>
                                         )}
                                     </>
                                 ) : (
