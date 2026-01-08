@@ -130,15 +130,26 @@ export default function AgendaPage() {
         return days;
     }, [currentDate]);
 
-    const getAppointmentsForDay = (date) => {
-        return appointments.filter((apt) => {
-            const aptDate = new Date(apt.date_time);
-            return (
-                aptDate.getDate() === date.getDate() &&
-                aptDate.getMonth() === date.getMonth() &&
-                aptDate.getFullYear() === date.getFullYear()
-            );
+    // Optimize: Pre-calculate appointments by day key (YYYY-MM-DD)
+    const appointmentsByDate = useMemo(() => {
+        const map = new Map();
+        appointments.forEach(apt => {
+            const dateStr = new Date(apt.date_time).toISOString().split('T')[0];
+            if (!map.has(dateStr)) {
+                map.set(dateStr, []);
+            }
+            map.get(dateStr).push(apt);
         });
+        return map;
+    }, [appointments]);
+
+    const getAppointmentsForDay = (date) => {
+        // Handle timezone issues by using local date string components
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        return appointmentsByDate.get(dateStr) || [];
     };
 
     const isToday = (date) => {

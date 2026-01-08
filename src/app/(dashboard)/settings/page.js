@@ -25,13 +25,20 @@ export default function SettingsPage() {
 
     const formatDate = (isoString) => {
         if (!isoString) return '';
-        const date = new Date(isoString);
+        // Fix: Parse manually to avoid timezone shift (YYYY-MM-DD -> UTC Midnight -> Previous Day in Local)
+        const [year, month, day] = isoString.split('-').map(Number);
+        const date = new Date(year, month - 1, day); // Local midnight
+
         const today = new Date();
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
 
-        if (date.toDateString() === today.toDateString()) return 'Hoje';
-        if (date.toDateString() === yesterday.toDateString()) return 'Ontem';
+        // Reset times for accurate comparison
+        today.setHours(0, 0, 0, 0);
+        yesterday.setHours(0, 0, 0, 0);
+
+        if (date.getTime() === today.getTime()) return 'Hoje';
+        if (date.getTime() === yesterday.getTime()) return 'Ontem';
         return date.toLocaleDateString('pt-BR');
     };
 

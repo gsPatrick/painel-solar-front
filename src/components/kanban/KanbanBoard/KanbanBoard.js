@@ -9,12 +9,64 @@ import {
     PointerSensor,
     useSensor,
     useSensors,
+    defaultDropAnimationSideEffects,
 } from '@dnd-kit/core';
-import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import {
+    arrayMove,
+    sortableKeyboardCoordinates,
+    SortableContext,
+    horizontalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Plus } from 'lucide-react';
 import Column from '../Column/Column';
 import LeadCard from '../LeadCard/LeadCard';
 import styles from './KanbanBoard.module.css';
+
+// Wrapper for Sortable Column
+function SortableColumn({ pipeline, ...props }) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({
+        id: pipeline.id,
+        data: {
+            type: 'column',
+            pipeline,
+        },
+    });
+
+    const style = {
+        transform: CSS.Translate.toString(transform),
+        transition,
+        opacity: isDragging ? 0.3 : 1,
+        touchAction: 'none', // Prevent scrolling conflict on mobile
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} {...attributes}>
+            {/* Listeners applied to handle for drag */}
+            <div {...listeners} style={{ cursor: 'grab', height: '100%' }}>
+                <Column pipeline={pipeline} {...props} />
+            </div>
+        </div>
+    );
+}
+
+const dropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+        styles: {
+            active: {
+                opacity: '0.4',
+            },
+        },
+    }),
+};
 
 export default function KanbanBoard({
     pipelines = [],
@@ -24,10 +76,12 @@ export default function KanbanBoard({
     onAddColumn,
     onEditColumn,
     onDeleteColumn,
+    onPipelineReorder,
     loading = false,
 }) {
     const [activeId, setActiveId] = useState(null);
     const [activeLead, setActiveLead] = useState(null);
+    const [activeColumn, setActiveColumn] = useState(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -58,17 +112,24 @@ export default function KanbanBoard({
         const { active } = event;
         setActiveId(active.id);
 
+        if (active.data.current?.type === 'column') {
+            setActiveColumn(active.data.current.pipeline);
+            return;
+        }
+
         const { lead } = findLeadById(active.id);
         setActiveLead(lead);
     }, [findLeadById]);
 
     const handleDragOver = useCallback((event) => {
         const { active, over } = event;
-
         if (!over) return;
 
         const activeId = active.id;
         const overId = over.id;
+
+        // If dragging column, do nothing on drag over
+        if (active.data.current?.type === 'column') return;
 
         // Find the pipelines containing the active and over items
         const activePipeline = findPipelineByLeadId(activeId);
@@ -88,34 +149,49 @@ export default function KanbanBoard({
 
     const handleDragEnd = useCallback((event) => {
         const { active, over } = event;
-
         setActiveId(null);
         setActiveLead(null);
+        setActiveColumn(null);
 
         if (!over) return;
 
         const activeId = active.id;
         const overId = over.id;
 
-        if (activeId === overId) return;
+        // Column Reordering
+        if (active.data.current?.type === 'column') {
+            if (activeId !== overId) {
+                const oldIndex = pipelines.findIndex((p) => p.id === activeId);
+                const newIndex = pipelines.findIndex((p) => p.id === overId);
 
-        const activePipeline = findPipelineByLeadId(activeId);
-        let overPipeline = findPipelineByLeadId(overId);
-
-        // If over is a column
-        if (!overPipeline && over.data.current?.type === 'column') {
-            overPipeline = over.data.current.pipeline;
+                if (oldIndex !== -1 && newIndex !== -1) {
+                    const newOrder = arrayMove(pipelines, oldIndex, newIndex);
+                    // Call parent handler with new order (array of pipelines)
+                    onPipelineReorder?.(newOrder);
+                }
+            }
+            return;
         }
 
-        if (!activePipeline || !overPipeline) return;
+        // Lead Reordering (same column)
+        const activePipeline = findPipelineByLeadId(activeId);
+        const overPipeline = findPipelineByLeadId(overId);
 
-        // Calculate new order index
-        const overLeads = overPipeline.leads || [];
-        const overIndex = overLeads.findIndex((l) => l.id === overId);
-        const newOrderIndex = overIndex >= 0 ? overIndex : overLeads.length;
+        if (activePipeline && overPipeline && activePipeline.id === overPipeline.id) {
+            const activeIndex = activePipeline.leads.findIndex(l => l.id === activeId);
+            const overIndex = activePipeline.leads.findIndex(l => l.id === overId);
 
-        onLeadMove?.(activeId, overPipeline.id, newOrderIndex);
-    }, [findPipelineByLeadId, onLeadMove]);
+            if (activeIndex !== overIndex) {
+                // Calculate new order index for API
+                // Logic simplified, assuming backend handles relative position or frontend optimistic update handles arrayMove
+                onLeadMove?.(activeId, activePipeline.id, overIndex);
+            }
+        } else if (activePipeline && overPipeline) {
+            // Different column (already handled by dragOver, but final settle here)
+            // We can just rely on dragOver for inter-column transport, usually enough in current logic
+        }
+
+    }, [pipelines, findPipelineByLeadId, onPipelineReorder, onLeadMove]);
 
     if (loading) {
         return (
@@ -127,6 +203,9 @@ export default function KanbanBoard({
         );
     }
 
+    // Sortable items for columns
+    const pipelineIds = pipelines.map(p => p.id);
+
     return (
         <DndContext
             sensors={sensors}
@@ -136,17 +215,19 @@ export default function KanbanBoard({
             onDragEnd={handleDragEnd}
         >
             <div className={styles.board}>
-                {pipelines.map((pipeline) => (
-                    <Column
-                        key={pipeline.id}
-                        pipeline={pipeline}
-                        leads={pipeline.leads || []}
-                        onLeadClick={onLeadClick}
-                        onAddLead={onAddLead}
-                        onEditColumn={onEditColumn}
-                        onDeleteColumn={onDeleteColumn}
-                    />
-                ))}
+                <SortableContext items={pipelineIds} strategy={horizontalListSortingStrategy}>
+                    {pipelines.map((pipeline) => (
+                        <SortableColumn
+                            key={pipeline.id}
+                            pipeline={pipeline}
+                            leads={pipeline.leads || []}
+                            onLeadClick={onLeadClick}
+                            onAddLead={onAddLead}
+                            onEditColumn={onEditColumn}
+                            onDeleteColumn={onDeleteColumn}
+                        />
+                    ))}
+                </SortableContext>
 
                 <button className={styles.addColumn} onClick={onAddColumn}>
                     <Plus size={20} />
@@ -154,8 +235,20 @@ export default function KanbanBoard({
                 </button>
             </div>
 
-            <DragOverlay>
-                {activeLead ? (
+            <DragOverlay dropAnimation={dropAnimation}>
+                {activeColumn ? (
+                    <div style={{ transform: 'rotate(3deg)', opacity: 0.8 }}>
+                        <Column
+                            pipeline={activeColumn}
+                            leads={activeColumn.leads || []}
+                            // Pass empty handlers for overlay
+                            onLeadClick={() => { }}
+                            onAddLead={() => { }}
+                            onEditColumn={() => { }}
+                            onDeleteColumn={() => { }}
+                        />
+                    </div>
+                ) : activeLead ? (
                     <div className={styles.dragOverlay}>
                         <LeadCard lead={activeLead} isDragging />
                     </div>

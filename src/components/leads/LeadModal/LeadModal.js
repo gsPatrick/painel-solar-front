@@ -34,7 +34,10 @@ export default function LeadModal({
 
     const [errors, setErrors] = useState({});
 
+    // Effect 1: Reset form when Modal opens or Lead changes
     useEffect(() => {
+        if (!isOpen) return;
+
         if (lead) {
             setFormData({
                 name: lead.name || '',
@@ -50,14 +53,21 @@ export default function LeadModal({
                 name: '',
                 phone: '',
                 source: 'manual',
-                pipeline_id: initialPipelineId || pipelines[0]?.id || '',
+                pipeline_id: initialPipelineId || '',
                 proposal_value: '',
                 system_size_kwp: '',
                 is_important: false,
             });
         }
         setErrors({});
-    }, [lead, isOpen, pipelines, initialPipelineId]);
+    }, [lead, isOpen, initialPipelineId]);
+
+    // Effect 2: Set default pipeline if creating new lead and pipelines load later
+    useEffect(() => {
+        if (isOpen && !lead && !formData.pipeline_id && pipelines.length > 0) {
+            setFormData(prev => ({ ...prev, pipeline_id: pipelines[0].id }));
+        }
+    }, [isOpen, lead, pipelines, formData.pipeline_id]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;

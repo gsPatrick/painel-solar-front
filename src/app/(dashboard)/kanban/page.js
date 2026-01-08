@@ -64,6 +64,21 @@ export default function KanbanPage() {
         }
     };
 
+    const handlePipelineReorder = async (newPipelines) => {
+        // Optimistic update
+        setPipelines(newPipelines);
+
+        // API Call
+        try {
+            const orderedIds = newPipelines.map(p => p.id);
+            await pipelineService.reorder(orderedIds);
+        } catch (error) {
+            console.error('Error reordering pipelines:', error);
+            showSuccessAlert('Erro ao salvar ordem das etapas', 'error');
+            loadKanbanData(); // Revert on error
+        }
+    };
+
     const handleLeadMove = async (leadId, newPipelineId, newOrderIndex) => {
         // Optimistic update
         setPipelines((prev) => {
@@ -365,6 +380,7 @@ export default function KanbanPage() {
                     onAddColumn={handleAddColumn}
                     onEditColumn={handleEditColumn}
                     onDeleteColumn={handleDeleteColumn}
+                    onPipelineReorder={handlePipelineReorder}
                     loading={loading}
                 />
 

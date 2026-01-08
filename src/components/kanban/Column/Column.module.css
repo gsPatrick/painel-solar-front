@@ -1,6 +1,6 @@
 .column {
-    width: 320px;
-    min-width: 320px;
+    width: 280px;
+    min-width: 280px;
     height: calc(100vh - var(--header-height) - var(--spacing-xl) * 2 - 60px);
     display: flex;
     flex-direction: column;
@@ -10,7 +10,7 @@
 }
 
 .header {
-    padding: var(--spacing-md);
+    padding: 10px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;

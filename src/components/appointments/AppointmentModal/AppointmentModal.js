@@ -31,7 +31,10 @@ export default function AppointmentModal({
 
     const [errors, setErrors] = useState({});
 
+    // Effect 1: Reset form when Modal opens or Appointment changes
     useEffect(() => {
+        if (!isOpen) return;
+
         if (appointment) {
             const dateTime = new Date(appointment.date_time);
             setFormData({
@@ -44,7 +47,7 @@ export default function AppointmentModal({
         } else {
             const now = new Date();
             setFormData({
-                lead_id: leads[0]?.id || '',
+                lead_id: '',
                 type: 'VISITA_TECNICA',
                 date: now.toISOString().split('T')[0],
                 time: '09:00',
@@ -52,7 +55,14 @@ export default function AppointmentModal({
             });
         }
         setErrors({});
-    }, [appointment, isOpen, leads]);
+    }, [appointment, isOpen]);
+
+    // Effect 2: Set default lead if creating new appointment and leads load later
+    useEffect(() => {
+        if (isOpen && !appointment && !formData.lead_id && leads.length > 0) {
+            setFormData(prev => ({ ...prev, lead_id: leads[0].id }));
+        }
+    }, [isOpen, appointment, leads, formData.lead_id]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -162,7 +172,7 @@ export default function AppointmentModal({
                         className={`${styles.select} ${errors.lead_id ? styles.inputError : ''}`}
                     >
                         <option value="">Selecione um lead...</option>
-                        {leads.map((l) => (
+                        {isOpen && leads.map((l) => (
                             <option key={l.id} value={l.id}>{l.name}</option>
                         ))}
                     </select>

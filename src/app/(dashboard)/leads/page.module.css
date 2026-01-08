@@ -147,6 +147,37 @@
 }
 
 /* Lead Row */
+.importantRow td {
+    border-top: 2px solid #FFD700 !important;
+    border-bottom: 2px solid #FFD700 !important;
+    background: rgba(255, 248, 225, 0.3);
+}
+
+.importantRow td:first-child {
+    border-left: 2px solid #FFD700 !important;
+    position: relative;
+    z-index: 1;
+}
+
+.importantRow td:last-child {
+    border-right: 2px solid #FFD700 !important;
+    position: relative;
+    z-index: 1;
+}
+
+/* Glow Effect using pseudo-element on the first cell to simulate row glow */
+.importantRow td:first-child::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: -4px 0 15px rgba(255, 215, 0, 0.4);
+    pointer-events: none;
+    z-index: -1;
+}
+
 .leadInfo {
     display: flex;
     align-items: center;

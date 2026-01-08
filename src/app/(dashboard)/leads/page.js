@@ -15,7 +15,9 @@ import {
     Users,
     Eye,
     Ban,
-    RotateCcw
+    RotateCcw,
+    Calendar,
+    Filter
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import LeadModal from '@/components/leads/LeadModal/LeadModal';
@@ -47,6 +49,9 @@ export default function LeadsPage() {
     const [search, setSearch] = useState('');
     const [sourceFilter, setSourceFilter] = useState('');
     const [pipelineFilter, setPipelineFilter] = useState('');
+    const [monthFilter, setMonthFilter] = useState(new Date().getMonth());
+    const [yearFilter, setYearFilter] = useState(new Date().getFullYear());
+    const [importantFilter, setImportantFilter] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingLead, setEditingLead] = useState(null);
     const [deleteLead, setDeleteLead] = useState(null);
@@ -196,8 +201,25 @@ export default function LeadsPage() {
         if (search && !l.name.toLowerCase().includes(search.toLowerCase())) return false;
         if (sourceFilter && l.source !== sourceFilter) return false;
         if (pipelineFilter && l.pipeline?.id !== pipelineFilter) return false;
+
+        // Date Logic (using last_interaction_at)
+        const leadDate = new Date(l.last_interaction_at);
+        if (leadDate.getMonth() !== parseInt(monthFilter) || leadDate.getFullYear() !== parseInt(yearFilter)) {
+            return false;
+        }
+
+        // Important Filter
+        if (importantFilter && !l.is_important) return false;
+
         return true;
     });
+
+    const months = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+
+    const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
     return (
         <>
@@ -237,6 +259,52 @@ export default function LeadsPage() {
                                     <option key={p.id} value={p.id}>{p.title}</option>
                                 ))}
                             </select>
+                        </div>
+
+                        <div className={styles.filters} style={{ marginTop: '10px' }}>
+                            <div className={styles.filterGroup} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <Calendar size={16} className={styles.filterIcon} style={{ color: '#64748B' }} />
+                                <select
+                                    className={styles.filterSelect}
+                                    value={monthFilter}
+                                    onChange={(e) => setMonthFilter(e.target.value)}
+                                >
+                                    {months.map((m, i) => (
+                                        <option key={i} value={i}>{m}</option>
+                                    ))}
+                                </select>
+                                <select
+                                    className={styles.filterSelect}
+                                    value={yearFilter}
+                                    onChange={(e) => setYearFilter(e.target.value)}
+                                >
+                                    {years.map(y => (
+                                        <option key={y} value={y}>{y}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <button
+                                className={`${styles.filterBtn} ${importantFilter ? styles.active : ''}`}
+                                onClick={() => setImportantFilter(!importantFilter)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 12px',
+                                    borderRadius: '8px',
+                                    border: importantFilter ? '1px solid #F59E0B' : '1px solid #E2E8F0',
+                                    background: importantFilter ? '#FFFBEB' : '#FFFFFF',
+                                    color: importantFilter ? '#D97706' : '#64748B',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    fontWeight: 500,
+                                    fontSize: '0.875rem'
+                                }}
+                            >
+                                <Star size={16} fill={importantFilter ? "currentColor" : "none"} />
+                                Importantes
+                            </button>
                         </div>
                     </div>
 
@@ -308,6 +376,7 @@ export default function LeadsPage() {
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
+                                        className={lead.is_important ? styles.importantRow : ''}
                                     >
                                         <td>
                                             <div className={styles.leadInfo}>
