@@ -11,7 +11,8 @@ import {
     Facebook,
     MessageCircle,
     User,
-    AlertCircle
+    AlertCircle,
+    Calendar
 } from 'lucide-react';
 import clsx from 'clsx';
 import styles from './LeadCard.module.css';
@@ -144,6 +145,7 @@ const LeadCard = forwardRef(({ lead, onClick, isDragging, loading = false }, ref
                 {
                     [styles.dragging]: dragging,
                     [styles.important]: lead.is_important,
+                    [styles.appointment]: lead.appointments?.some(a => a.status === 'scheduled'), // Add highlight class
                 }
             )}
             onClick={() => onClick?.(lead)}
@@ -180,6 +182,16 @@ const LeadCard = forwardRef(({ lead, onClick, isDragging, loading = false }, ref
                         📣 {lead.meta_campaign_data.campaign_name}
                     </span>
                 )}
+
+                {/* Active Appointment Badge */}
+                {lead.appointments && lead.appointments.some(a => a.status === 'scheduled') && (
+                    <div className={styles.appointmentBadge}>
+                        <Calendar size={12} />
+                        {new Date(lead.appointments.find(a => a.status === 'scheduled').date_time).toLocaleDateString('pt-BR', {
+                            day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                        })}
+                    </div>
+                )}
             </div>
 
             <div className={styles.footer}>
@@ -194,7 +206,7 @@ const LeadCard = forwardRef(({ lead, onClick, isDragging, loading = false }, ref
                     <span className={clsx(styles.slaIndicator, getSlaIndicatorClass())} />
                 </div>
             </div>
-        </motion.div>
+        </motion.div >
     );
 });
 

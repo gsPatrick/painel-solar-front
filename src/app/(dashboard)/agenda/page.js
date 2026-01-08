@@ -9,12 +9,13 @@ import {
     Calendar as CalendarIcon,
     MapPin,
     Wrench,
-    Clock
+    Clock,
+    CheckSquare
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import AppointmentModal from '@/components/appointments/AppointmentModal/AppointmentModal';
 import LeadModal from '@/components/leads/LeadModal/LeadModal';
-import { appointmentService, leadService } from '@/services/api';
+import { appointmentService, leadService, taskService } from '@/services/api';
 import styles from './page.module.css';
 
 // ... (code)
@@ -38,16 +39,30 @@ export default function AgendaPage() {
     const loadData = async () => {
         setLoading(true);
         try {
-            const [fetchedAppointments, fetchedLeads] = await Promise.all([
+            const [fetchedAppointments, fetchedLeads, fetchedTasks] = await Promise.all([
                 appointmentService.getAll({
                     date: currentDate.toISOString() // Or pass month/year range if API supports it
                 }),
-                leadService.getAll()
+                leadService.getAll(),
+                taskService.getAll() // Fetch assignments
             ]);
+
+            // Process tasks to match appointment structure for calendar
+            const taskEvents = fetchedTasks
+                .filter(t => t.due_date && t.status !== 'done') // Only show pending/todo tasks with date
+                .map(t => ({
+                    id: `task-${t.id}`, // Avoid ID collision
+                    original_id: t.id,
+                    type: 'TASK',
+                    status: t.status,
+                    date_time: t.due_date, // Map due_date to date_time
+                    lead: t.lead,
+                    title: t.title
+                }));
 
             // If API returns all appointments, filtering might happen in backend or frontend.
             // Assuming getAll returns list.
-            setAppointments(fetchedAppointments);
+            setAppointments([...fetchedAppointments, ...taskEvents]);
             setLeads(fetchedLeads);
         } catch (error) {
             console.error("Error loading agenda data:", error);
@@ -285,12 +300,14 @@ export default function AgendaPage() {
                                                 key={apt.id}
                                                 className={`
                           ${styles.event} 
-                          ${apt.type === 'VISITA_TECNICA' ? styles.visitaTecnica : styles.instalacao}
+                          ${apt.type === 'VISITA_TECNICA' ? styles.visitaTecnica : apt.type === 'TASK' ? styles.task : styles.instalacao}
                           ${apt.status === 'cancelled' ? styles.cancelled : ''}
                         `}
                                             >
                                                 {apt.type === 'VISITA_TECNICA' ? (
                                                     <MapPin size={10} />
+                                                ) : apt.type === 'TASK' ? (
+                                                    <CheckSquare size={10} />
                                                 ) : (
                                                     <Wrench size={10} />
                                                 )}
@@ -320,6 +337,11 @@ export default function AgendaPage() {
                         <span className={`${styles.legendDot} ${styles.instalacao}`} />
                         <Wrench size={14} />
                         Instalação
+                    </div>
+                    <div className={styles.legendItem}>
+                        <span className={`${styles.legendDot} ${styles.task}`} />
+                        <CheckSquare size={14} />
+                        Tarefas
                     </div>
                 </div>
             </div>
