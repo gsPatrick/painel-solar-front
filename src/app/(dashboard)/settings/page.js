@@ -6,11 +6,15 @@ import {
     Bell,
     Save,
     Check,
-    Target
+    Target,
+    RefreshCw,
+    Facebook,
+    Loader2
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import { useTheme } from '@/contexts/ThemeContext';
 import { settingsService } from '@/services/api';
+import api from '@/services/api';
 import styles from './page.module.css';
 
 export default function SettingsPage() {
@@ -22,6 +26,11 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(false);
     const [saved, setSaved] = useState(false);
     const [monthlyGoal, setMonthlyGoal] = useState({ target: 50000, current: 0 });
+
+    // Meta Sync State
+    const [metaSyncing, setMetaSyncing] = useState(false);
+    const [metaSyncResult, setMetaSyncResult] = useState(null);
+    const [metaPageId, setMetaPageId] = useState('');
 
     const [localSettings, setLocalSettings] = useState({
         notifyOverdue: true,
@@ -41,6 +50,37 @@ export default function SettingsPage() {
             setMonthlyGoal(goal);
         } catch (error) {
             console.log('Using default monthly goal');
+        }
+    };
+
+    const handleMetaSync = async () => {
+        if (!metaPageId) {
+            alert('Por favor, informe o Page ID do Facebook');
+            return;
+        }
+
+        setMetaSyncing(true);
+        setMetaSyncResult(null);
+
+        try {
+            const response = await api.post('/webhook/meta/sync', {
+                page_id: metaPageId,
+                limit: 100,
+            });
+
+            setMetaSyncResult({
+                success: true,
+                imported: response.data.imported_count,
+                skipped: response.data.skipped_count,
+                total: response.data.total_found,
+            });
+        } catch (err) {
+            setMetaSyncResult({
+                success: false,
+                error: err.response?.data?.error || 'Erro ao sincronizar',
+            });
+        } finally {
+            setMetaSyncing(false);
         }
     };
 
@@ -187,6 +227,103 @@ export default function SettingsPage() {
                                 />
                             </div>
                         </div>
+                    </div>
+                </motion.div>
+
+                {/* Meta Integration Section */}
+                <motion.div
+                    className={styles.card}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                >
+                    <div className={styles.cardHeader}>
+                        <Facebook className={styles.cardIcon} style={{ color: '#1877F2' }} />
+                        <h2>Integração Meta (Facebook/Instagram)</h2>
+                    </div>
+                    <div className={styles.cardBody}>
+                        <p style={{ color: 'var(--color-text-secondary)', marginBottom: '16px', fontSize: '0.9rem' }}>
+                            Sincronize leads antigos dos formulários do Facebook que chegaram antes da integração com o webhook.
+                        </p>
+
+                        <div className={styles.formGroup} style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>
+                                Page ID do Facebook
+                            </label>
+                            <input
+                                type="text"
+                                value={metaPageId}
+                                onChange={(e) => setMetaPageId(e.target.value)}
+                                placeholder="Ex: 123456789012345"
+                                style={{
+                                    width: '100%',
+                                    padding: '12px 16px',
+                                    background: 'var(--color-bg-input)',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: '10px',
+                                    color: 'var(--color-text-primary)',
+                                    fontSize: '0.95rem',
+                                }}
+                            />
+                            <small style={{ color: 'var(--color-text-secondary)', fontSize: '0.8rem' }}>
+                                Encontre no Meta Business Suite → Configurações da Página → ID da Página
+                            </small>
+                        </div>
+
+                        <button
+                            onClick={handleMetaSync}
+                            disabled={metaSyncing}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                padding: '14px 24px',
+                                background: metaSyncing ? '#ccc' : 'linear-gradient(135deg, #1877F2, #0866FF)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '0.95rem',
+                                fontWeight: 600,
+                                cursor: metaSyncing ? 'not-allowed' : 'pointer',
+                                boxShadow: '0 4px 12px rgba(24, 119, 242, 0.3)',
+                            }}
+                        >
+                            {metaSyncing ? (
+                                <>
+                                    <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                                    Buscando leads no Facebook...
+                                </>
+                            ) : (
+                                <>
+                                    <RefreshCw size={18} />
+                                    Sincronizar Leads do Facebook
+                                </>
+                            )}
+                        </button>
+
+                        {metaSyncResult && (
+                            <div
+                                style={{
+                                    marginTop: '16px',
+                                    padding: '14px 18px',
+                                    background: metaSyncResult.success ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                    border: `1px solid ${metaSyncResult.success ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+                                    borderRadius: '10px',
+                                    color: metaSyncResult.success ? '#22C55E' : '#EF4444',
+                                }}
+                            >
+                                {metaSyncResult.success ? (
+                                    <>
+                                        ✅ <strong>{metaSyncResult.imported}</strong> leads importados e contatados pela IA!
+                                        {metaSyncResult.skipped > 0 && (
+                                            <span style={{ opacity: 0.7 }}> ({metaSyncResult.skipped} já existiam)</span>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>❌ {metaSyncResult.error}</>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </motion.div>
 
