@@ -191,7 +191,7 @@ export default function MessagesPage() {
             id: `temp_${Date.now()}`,
             lead_id: selectedLead.id,
             content: messageInput,
-            sender: 'ai',
+            sender: 'agent', // Fixed: Manual message from agent
             timestamp: new Date().toISOString(),
             type: attachmentType || 'text',
             attachment_url: attachmentPreview,
@@ -711,10 +711,6 @@ export default function MessagesPage() {
                                                     <Video size={20} color="#3B82F6" />
                                                     <span>Vídeo</span>
                                                 </button>
-                                                <button onClick={() => handleFileSelect('audio')}>
-                                                    <Mic size={20} color="#8B5CF6" />
-                                                    <span>Áudio (Arquivo)</span>
-                                                </button>
                                             </div>
                                         )}
                                     </div>
@@ -751,16 +747,7 @@ export default function MessagesPage() {
                                                 >
                                                     <Send size={20} />
                                                 </button>
-                                            ) : (
-                                                <button
-                                                    className={styles.sendBtn}
-                                                    onClick={startRecording}
-                                                    disabled={sending}
-                                                    title="Gravar áudio"
-                                                >
-                                                    <Mic size={20} />
-                                                </button>
-                                            )}
+                                            ) : null}
                                         </>
                                     )}
                                 </div>
