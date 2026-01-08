@@ -80,6 +80,41 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);
+
+    /* Scroll Shadow Effect */
+    background:
+        /* Shadow Cover TOP */
+        linear-gradient(var(--color-bg-main) 30%, rgba(244, 247, 254, 0)),
+        /* Shadow Cover BOTTOM */
+        linear-gradient(rgba(244, 247, 254, 0), var(--color-bg-main) 70%) 0 100%,
+        /* Shadow TOP */
+        radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, .15), rgba(0, 0, 0, 0)),
+        /* Shadow BOTTOM */
+        radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, .15), rgba(0, 0, 0, 0)) 0 100%;
+
+    background-repeat: no-repeat;
+    background-color: var(--color-bg-main);
+    background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+    background-attachment: local, local, scroll, scroll;
+}
+
+/* Custom Scrollbar */
+.content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.content::-webkit-scrollbar-thumb {
+    background: rgba(160, 174, 192, 0.3);
+    /* Subtle grey */
+    border-radius: 10px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+    background: rgba(160, 174, 192, 0.5);
 }
 
 .content.dragOver {

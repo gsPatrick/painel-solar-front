@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
     ChevronLeft,
@@ -14,6 +15,8 @@ import {
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import AppointmentModal from '@/components/appointments/AppointmentModal/AppointmentModal';
+import TaskModal from '@/components/tasks/TaskModal/TaskModal';
+import DayDetailsModal from '@/components/agenda/DayDetailsModal/DayDetailsModal';
 import LeadModal from '@/components/leads/LeadModal/LeadModal';
 import { appointmentService, leadService, taskService } from '@/services/api';
 import styles from './page.module.css';
@@ -21,6 +24,7 @@ import styles from './page.module.css';
 // ... (code)
 
 export default function AgendaPage() {
+    const router = useRouter();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [appointments, setAppointments] = useState([]);
     const [leads, setLeads] = useState([]);
@@ -31,6 +35,12 @@ export default function AgendaPage() {
     const [showModal, setShowModal] = useState(false);
     const [modalLoading, setModalLoading] = useState(false);
     const [showLeadModal, setShowLeadModal] = useState(false);
+
+    // Day Details & Editing
+    const [selectedDay, setSelectedDay] = useState(null);
+    const [showDayModal, setShowDayModal] = useState(false);
+    const [editingTask, setEditingTask] = useState(null);
+    const [editingAppointment, setEditingAppointment] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -110,6 +120,23 @@ export default function AgendaPage() {
             // Demo fallback
             setLeads(prev => [{ id: Date.now().toString(), ...data }, ...prev]);
             setShowLeadModal(false);
+        }
+    };
+
+    const handleDayClick = (date) => {
+        setSelectedDay(date);
+        setShowDayModal(true);
+    };
+
+    const handleEventClick = (event) => {
+        setShowDayModal(false); // Close day view
+
+        if (event.type === 'TASK') {
+            // Navigate to Tasks page
+            router.push('/tasks');
+        } else {
+            // Navigate to Kanban page (Appointments live on Lead Cards)
+            router.push('/kanban');
         }
     };
 
@@ -292,6 +319,8 @@ export default function AgendaPage() {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: index * 0.01 }}
+                                    onClick={() => handleDayClick(date)}
+                                    style={{ cursor: 'pointer' }}
                                 >
                                     <span className={styles.dayNumber}>{date.getDate()}</span>
                                     <div className={styles.events}>
@@ -349,11 +378,39 @@ export default function AgendaPage() {
             {/* Appointment Modal */}
             <AppointmentModal
                 isOpen={showModal}
-                onClose={() => setShowModal(false)}
+                onClose={() => {
+                    setShowModal(false);
+                    setEditingAppointment(null);
+                }}
                 onSubmit={handleCreateAppointment}
                 leads={leads}
                 loading={modalLoading}
                 onCreateLead={() => setShowLeadModal(true)}
+                appointment={editingAppointment} // Pass for editing
+                isEditing={!!editingAppointment}
+            />
+
+            {/* Task Modal for Editing */}
+            <TaskModal
+                isOpen={!!editingTask}
+                onClose={() => setEditingTask(null)}
+                onSubmit={async (data) => {
+                    // Quick update logic here or refresh
+                    await loadData();
+                    setEditingTask(null);
+                }}
+                task={editingTask}
+                leads={leads}
+                loading={modalLoading}
+            />
+
+            {/* Day Details Modal */}
+            <DayDetailsModal
+                isOpen={showDayModal}
+                onClose={() => setShowDayModal(false)}
+                date={selectedDay}
+                events={selectedDay ? getAppointmentsForDay(selectedDay) : []}
+                onItemClick={handleEventClick}
             />
 
             {/* Lead Modal for Creating New Lead */}
