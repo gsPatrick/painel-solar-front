@@ -23,6 +23,18 @@ export default function SettingsPage() {
         updateSettings
     } = useTheme();
 
+    const formatDate = (isoString) => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        if (date.toDateString() === today.toDateString()) return 'Hoje';
+        if (date.toDateString() === yesterday.toDateString()) return 'Ontem';
+        return date.toLocaleDateString('pt-BR');
+    };
+
     const [loading, setLoading] = useState(false);
     const [saved, setSaved] = useState(false);
     const [monthlyGoal, setMonthlyGoal] = useState({ target: 50000, current: 0 });
@@ -31,6 +43,8 @@ export default function SettingsPage() {
     const [metaSyncing, setMetaSyncing] = useState(false);
     const [metaSyncResult, setMetaSyncResult] = useState(null);
     const [metaPageId, setMetaPageId] = useState('534745156397254'); // DGE Energia Alternativa
+    const [metaPreviewData, setMetaPreviewData] = useState(null);
+    const [selectedLeads, setSelectedLeads] = useState([]);
 
     const [localSettings, setLocalSettings] = useState({
         notifyOverdue: true,
@@ -53,9 +67,44 @@ export default function SettingsPage() {
         }
     };
 
-    const handleMetaSync = async () => {
+    const handleMetaPreview = async () => {
         if (!metaPageId) {
             alert('Por favor, informe o Page ID do Facebook');
+            return;
+        }
+
+        setMetaSyncing(true);
+        setMetaPreviewData(null);
+        setMetaSyncResult(null);
+
+        try {
+            const { data } = await api.post('/webhook/meta/preview', {
+                page_id: metaPageId,
+                limit: 100,
+            });
+
+            setMetaPreviewData(data);
+
+            // Auto-select all NEW leads
+            const newIds = [];
+            Object.values(data.grouped_leads).flat().forEach(lead => {
+                if (lead.status === 'new') newIds.push(lead.id);
+            });
+            setSelectedLeads(newIds);
+
+        } catch (err) {
+            setMetaSyncResult({
+                success: false,
+                error: err.response?.data?.error || 'Erro ao buscar leads',
+            });
+        } finally {
+            setMetaSyncing(false);
+        }
+    };
+
+    const handleMetaSync = async () => {
+        if (selectedLeads.length === 0) {
+            alert('Selecione pelo menos um lead para sincronizar.');
             return;
         }
 
@@ -65,6 +114,7 @@ export default function SettingsPage() {
         try {
             const response = await api.post('/webhook/meta/sync', {
                 page_id: metaPageId,
+                selected_ids: selectedLeads,
                 limit: 100,
             });
 
@@ -76,6 +126,10 @@ export default function SettingsPage() {
                 queued: response.data.queued_for_message,
                 estimatedTime: response.data.queue_status?.estimatedTimeMinutes
             });
+
+            // Clear preview after successful sync
+            setMetaPreviewData(null);
+
         } catch (err) {
             setMetaSyncResult({
                 success: false,
@@ -83,6 +137,23 @@ export default function SettingsPage() {
             });
         } finally {
             setMetaSyncing(false);
+        }
+    };
+
+    const toggleLeadSelection = (id) => {
+        setSelectedLeads(prev =>
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        );
+    };
+
+    const toggleGroupSelection = (leads) => {
+        const ids = leads.map(l => l.id);
+        const allSelected = ids.every(id => selectedLeads.includes(id));
+
+        if (allSelected) {
+            setSelectedLeads(prev => prev.filter(id => !ids.includes(id)));
+        } else {
+            setSelectedLeads(prev => [...new Set([...prev, ...ids])]);
         }
     };
 
@@ -272,36 +343,172 @@ export default function SettingsPage() {
                             </small>
                         </div>
 
-                        <button
-                            onClick={handleMetaSync}
-                            disabled={metaSyncing}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                padding: '14px 24px',
-                                background: metaSyncing ? '#ccc' : 'linear-gradient(135deg, #1877F2, #0866FF)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '10px',
-                                fontSize: '0.95rem',
-                                fontWeight: 600,
-                                cursor: metaSyncing ? 'not-allowed' : 'pointer',
-                                boxShadow: '0 4px 12px rgba(24, 119, 242, 0.3)',
-                            }}
-                        >
-                            {metaSyncing ? (
-                                <>
-                                    <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
-                                    Buscando leads no Facebook...
-                                </>
-                            ) : (
-                                <>
-                                    <RefreshCw size={18} />
-                                    Sincronizar Leads do Facebook
-                                </>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '15px' }}>
+                            <button
+                                onClick={handleMetaPreview}
+                                disabled={metaSyncing}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    padding: '12px 24px',
+                                    background: 'var(--color-bg-secondary)',
+                                    color: 'var(--color-text-primary)',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: '10px',
+                                    fontSize: '0.95rem',
+                                    fontWeight: 500,
+                                    cursor: metaSyncing ? 'not-allowed' : 'pointer',
+                                    opacity: metaSyncing ? 0.7 : 1,
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                {metaSyncing && !metaPreviewData ? (
+                                    <Loader2 size={18} className={styles.spin} />
+                                ) : (
+                                    <>
+                                        <RefreshCw size={18} />
+                                        Buscar Leads
+                                    </>
+                                )}
+                            </button>
+
+                            {metaPreviewData && (
+                                <button
+                                    onClick={handleMetaSync}
+                                    disabled={metaSyncing || selectedLeads.length === 0}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '10px',
+                                        padding: '12px 24px',
+                                        background: '#22C55E', // Green for action
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '10px',
+                                        fontSize: '0.95rem',
+                                        fontWeight: 600,
+                                        cursor: (metaSyncing || selectedLeads.length === 0) ? 'not-allowed' : 'pointer',
+                                        opacity: (metaSyncing || selectedLeads.length === 0) ? 0.7 : 1,
+                                        boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)'
+                                    }}
+                                >
+                                    {metaSyncing ? (
+                                        <Loader2 size={18} className={styles.spin} />
+                                    ) : (
+                                        <>
+                                            🚀 Sincronizar ({selectedLeads.length})
+                                        </>
+                                    )}
+                                </button>
                             )}
-                        </button>
+                        </div>
+
+                        {/* List of Leads */}
+                        {metaPreviewData && !metaSyncResult?.success && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                style={{
+                                    background: 'var(--color-bg-secondary)',
+                                    borderRadius: '12px',
+                                    padding: '15px',
+                                    marginBottom: '20px',
+                                    maxHeight: '400px',
+                                    overflowY: 'auto',
+                                    border: '1px solid var(--color-border)'
+                                }}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '0.9rem' }}>
+                                    <span style={{ color: 'var(--color-text-secondary)' }}>
+                                        <strong>{metaPreviewData.stats.found}</strong> encontrados
+                                    </span>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <span style={{ color: '#22C55E' }}><strong>{metaPreviewData.stats.new}</strong> novos</span>
+                                        <span style={{ opacity: 0.6 }}>{metaPreviewData.stats.exists} existentes</span>
+                                    </div>
+                                </div>
+
+                                {Object.entries(metaPreviewData.grouped_leads).map(([date, leads]) => (
+                                    <div key={date} style={{ marginBottom: '15px' }}>
+                                        <div
+                                            style={{
+                                                fontSize: '0.85rem',
+                                                textTransform: 'uppercase',
+                                                color: 'var(--color-text-secondary)',
+                                                marginBottom: '8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                cursor: 'pointer',
+                                                fontWeight: 600
+                                            }}
+                                            onClick={() => toggleGroupSelection(leads)}
+                                        >
+                                            <div style={{
+                                                width: '18px', height: '18px',
+                                                borderRadius: '4px',
+                                                border: '2px solid var(--color-border)',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                background: leads.every(l => selectedLeads.includes(l.id)) ? '#22C55E' : 'transparent',
+                                                borderColor: leads.every(l => selectedLeads.includes(l.id)) ? '#22C55E' : 'var(--color-border)'
+                                            }}>
+                                                {leads.every(l => selectedLeads.includes(l.id)) && <Check size={12} color="white" />}
+                                            </div>
+                                            {formatDate(date)} ({leads.length})
+                                        </div>
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                            {leads.map(lead => (
+                                                <div
+                                                    key={lead.id}
+                                                    onClick={() => toggleLeadSelection(lead.id)}
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '12px',
+                                                        padding: '10px 12px',
+                                                        background: 'var(--color-bg-primary)',
+                                                        borderRadius: '8px',
+                                                        opacity: lead.status === 'exists' ? 0.6 : 1,
+                                                        border: selectedLeads.includes(lead.id) ? '1px solid #22C55E' : '1px solid transparent',
+                                                        cursor: 'pointer',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    <div style={{
+                                                        width: '18px', height: '18px',
+                                                        borderRadius: '4px',
+                                                        border: '2px solid var(--color-border)',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                        background: selectedLeads.includes(lead.id) ? '#22C55E' : 'transparent',
+                                                        borderColor: selectedLeads.includes(lead.id) ? '#22C55E' : 'var(--color-border)'
+                                                    }}>
+                                                        {selectedLeads.includes(lead.id) && <Check size={12} color="white" />}
+                                                    </div>
+
+                                                    <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <span style={{ fontSize: '0.9rem', color: 'var(--color-text-primary)' }}>
+                                                            Lead do Facebook <span style={{ opacity: 0.5, fontSize: '0.8rem' }}>#{lead.id.substr(-4)}</span>
+                                                        </span>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>
+                                                                {new Date(lead.created_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                                            </span>
+                                                            {lead.status === 'exists' && (
+                                                                <span style={{ fontSize: '0.7rem', background: 'var(--color-bg-tertiary)', padding: '2px 6px', borderRadius: '4px' }}>
+                                                                    Já existe
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </motion.div>
+                        )}
 
                         {metaSyncResult && (
                             <div
