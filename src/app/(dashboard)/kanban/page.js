@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { io } from 'socket.io-client';
 import {
     Plus,
     Filter,
@@ -31,6 +32,8 @@ import { pipelineService, leadService, appointmentService, messageService } from
 import { useNotification } from '@/contexts/NotificationContext';
 import styles from './page.module.css';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://geral-painelsolar-sistema.r954jc.easypanel.host';
+
 export default function KanbanPage() {
     const { showSuccessAlert } = useNotification();
     const [loading, setLoading] = useState(true);
@@ -47,6 +50,84 @@ export default function KanbanPage() {
     const [targetPipeline, setTargetPipeline] = useState('');
     const [addToPipeline, setAddToPipeline] = useState(null);
     const [modalLoading, setModalLoading] = useState(false);
+    const [isRealtime, setIsRealtime] = useState(false);
+    const socketRef = useRef(null);
+
+    // Socket.io connection for real-time updates
+    useEffect(() => {
+        socketRef.current = io(API_URL.replace('/api', ''), {
+            transports: ['websocket', 'polling'],
+        });
+
+        socketRef.current.on('connect', () => {
+            console.log('[Kanban] Socket connected for real-time updates');
+            setIsRealtime(true);
+        });
+
+        socketRef.current.on('disconnect', () => {
+            console.log('[Kanban] Socket disconnected');
+            setIsRealtime(false);
+        });
+
+        // Listen for new leads
+        socketRef.current.on('new_lead', (newLead) => {
+            console.log('[Kanban] New lead received:', newLead);
+            setPipelines(prev => prev.map(p => {
+                if (p.id === newLead.pipeline_id) {
+                    // Check if lead already exists to avoid duplicates
+                    const exists = p.leads?.some(l => l.id === newLead.id);
+                    if (!exists) {
+                        return { ...p, leads: [...(p.leads || []), newLead] };
+                    }
+                }
+                return p;
+            }));
+            showSuccessAlert('Novo Lead!', `${newLead.name} entrou no funil.`);
+        });
+
+        // Listen for lead updates (e.g., pipeline changes)
+        socketRef.current.on('lead_update', (updatedLead) => {
+            console.log('[Kanban] Lead updated:', updatedLead);
+            setPipelines(prev => {
+                // Remove lead from old pipeline and add to new one
+                let leadFound = null;
+                const updated = prev.map(p => {
+                    const existingLead = p.leads?.find(l => l.id === updatedLead.id);
+                    if (existingLead) {
+                        leadFound = { ...existingLead, ...updatedLead };
+                    }
+                    return {
+                        ...p,
+                        leads: p.leads?.filter(l => l.id !== updatedLead.id) || []
+                    };
+                });
+
+                // Add to correct pipeline
+                if (leadFound) {
+                    return updated.map(p => {
+                        if (p.id === updatedLead.pipeline_id) {
+                            return { ...p, leads: [...(p.leads || []), leadFound] };
+                        }
+                        return p;
+                    });
+                }
+                return updated;
+            });
+        });
+
+        // Listen for AI pause notifications
+        socketRef.current.on('ai_paused_notification', (data) => {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            showSuccessAlert('IA Pausada', `Intervenção humana detectada para ${data.leadName} às ${timeStr}`);
+        });
+
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+            }
+        };
+    }, [showSuccessAlert]);
 
     useEffect(() => {
         loadKanbanData();
@@ -354,6 +435,16 @@ export default function KanbanPage() {
                                 <option value="whatsapp">WhatsApp</option>
                                 <option value="manual">Manual</option>
                             </select>
+                        </div>
+                        {/* Real-time indicator */}
+                        <div
+                            className={`${styles.realtimeIndicator} ${isRealtime ? styles.connected : ''}`}
+                            title={isRealtime ? 'Conectado - atualizações automáticas ativas' : 'Desconectado - recarregue a página'}
+                        >
+                            <span className={styles.realtimeDot} />
+                            <span className={styles.realtimeText}>
+                                {isRealtime ? 'Atualizando em Tempo Real' : 'Desconectado'}
+                            </span>
                         </div>
                     </div>
 

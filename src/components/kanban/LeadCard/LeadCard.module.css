@@ -1,13 +1,13 @@
 .leadCard {
     background: var(--color-bg-card);
     border-radius: var(--radius-md);
-    padding: 10px 12px;
+    padding: 12px 14px;
     box-shadow: var(--shadow-sm);
     cursor: grab;
     transition: all var(--transition-normal);
     border-left: 4px solid transparent;
     position: relative;
-    overflow: hidden;
+    /* Removed overflow:hidden and min-height to allow content to display fully */
 }
 
 .leadCard:hover {
@@ -171,6 +171,12 @@
     gap: 4px;
 }
 
+.missingInfo {
+    color: #EF4444;
+    font-style: italic;
+    opacity: 0.7;
+}
+
 .campaignBadge {
     font-size: 0.7rem;
     color: #1877F2;
@@ -190,6 +196,8 @@
     margin-top: var(--spacing-sm);
     padding-top: var(--spacing-sm);
     border-top: 1px solid rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
+    /* Never collapse */
 }
 
 .value {
@@ -215,6 +223,15 @@
     display: flex;
     align-items: center;
     gap: 4px;
+}
+
+.stageBadge {
+    font-size: 0.65rem;
+    color: #8B5CF6;
+    background: rgba(139, 92, 246, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
 }
 
 .slaIndicator {

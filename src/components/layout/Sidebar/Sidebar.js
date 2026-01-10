@@ -17,7 +17,8 @@ import {
     X,
     Check,
     RefreshCw,
-    Bell
+    Bell,
+    Shield
 } from 'lucide-react';
 import { settingsService } from '@/services/api';
 import { useNotification } from '@/contexts/NotificationContext';
@@ -44,6 +45,7 @@ const navItems = [
         section: 'Sistema',
         items: [
             { href: '/follow-up', icon: RefreshCw, label: 'Follow-up' },
+            { href: '/backup', icon: Shield, label: 'Backup & Segurança' },
             { href: '/notifications', icon: Bell, label: 'Notificações' },
             { href: '/analytics', icon: TrendingUp, label: 'Analytics' },
             { href: '/settings', icon: Settings, label: 'Configurações' },

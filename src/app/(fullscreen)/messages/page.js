@@ -25,7 +25,8 @@ import {
     Trash2,
     Bot,
     PauseCircle,
-    PlayCircle
+    PlayCircle,
+    FileText
 } from 'lucide-react';
 import { io } from 'socket.io-client';
 import { pipelineService, leadService, messageService } from '@/services/api';
@@ -291,6 +292,9 @@ export default function MessagesPage() {
                 case 'audio':
                     input.accept = 'audio/*';
                     break;
+                case 'document':
+                    input.accept = '.pdf,.doc,.docx,.xls,.xlsx,.txt';
+                    break;
             }
             input.click();
         }
@@ -503,6 +507,18 @@ export default function MessagesPage() {
     };
 
     const renderMessageContent = (msg) => {
+        if (msg.type === 'document' && msg.attachment_url) {
+            return (
+                <div className={styles.messageDocument}>
+                    <FileText size={24} color="#F59E0B" />
+                    <div>
+                        <a href={msg.attachment_url} target="_blank" rel="noopener noreferrer" className={styles.documentLink}>
+                            {msg.content || 'Visualizar Documento'}
+                        </a>
+                    </div>
+                </div>
+            );
+        }
         if (msg.type === 'image' && msg.attachment_url) {
             return (
                 <>
@@ -691,6 +707,12 @@ export default function MessagesPage() {
                                         {attachmentType === 'audio' && (
                                             <audio src={attachmentPreview} controls />
                                         )}
+                                        {attachmentType === 'document' && (
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: '#f3f4f6', borderRadius: '8px' }}>
+                                                <FileText size={24} color="#F59E0B" />
+                                                <span>{attachmentFile?.name}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 
@@ -710,6 +732,10 @@ export default function MessagesPage() {
                                                 <button onClick={() => handleFileSelect('video')}>
                                                     <Video size={20} color="#3B82F6" />
                                                     <span>Vídeo</span>
+                                                </button>
+                                                <button onClick={() => handleFileSelect('document')}>
+                                                    <FileText size={20} color="#F59E0B" />
+                                                    <span>Documento</span>
                                                 </button>
                                             </div>
                                         )}

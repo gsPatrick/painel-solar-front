@@ -132,6 +132,68 @@
     box-shadow: 0 0 0 3px rgba(67, 24, 255, 0.1);
 }
 
+/* Real-time indicator */
+.realtimeIndicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    color: #EF4444;
+    margin-left: var(--spacing-md);
+}
+
+.realtimeIndicator.connected {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10B981;
+}
+
+.realtimeDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse-dot 2s infinite;
+}
+
+.realtimeIndicator.connected .realtimeDot {
+    animation: pulse-live 1.5s infinite;
+}
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes pulse-live {
+
+    0%,
+    100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+    }
+}
+
+.realtimeText {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 .actions {
     display: flex;
     align-items: center;

@@ -183,21 +183,24 @@
 }
 
 .event.visitaTecnica {
-    background: rgba(59, 130, 246, 0.15);
-    color: #3B82F6;
+    background: rgba(59, 130, 246, 0.85);
+    color: white;
     border-left: 3px solid #3B82F6;
+    font-weight: 600;
 }
 
 .event.instalacao {
-    background: rgba(16, 185, 129, 0.15);
-    color: #10B981;
+    background: rgba(16, 185, 129, 0.85);
+    color: white;
     border-left: 3px solid #10B981;
+    font-weight: 600;
 }
 
 .event.task {
-    background: rgba(245, 158, 11, 0.15);
-    color: #F59E0B;
+    background: rgba(245, 158, 11, 0.85);
+    color: white;
     border-left: 3px solid #F59E0B;
+    font-weight: 600;
 }
 
 .event.cancelled {
