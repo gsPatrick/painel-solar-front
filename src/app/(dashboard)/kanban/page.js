@@ -82,7 +82,8 @@ export default function KanbanPage() {
                 }
                 return p;
             }));
-            showSuccessAlert('Novo Lead!', `${newLead.name} entrou no funil.`);
+            // Notification removida a pedido do cliente - apenas log no console
+            console.log(`[Kanban] Novo lead: ${newLead.name}`);
         });
 
         // Listen for lead updates (e.g., pipeline changes)
@@ -115,11 +116,9 @@ export default function KanbanPage() {
             });
         });
 
-        // Listen for AI pause notifications
+        // Listen for AI pause notifications (log only, no modal)
         socketRef.current.on('ai_paused_notification', (data) => {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            showSuccessAlert('IA Pausada', `Intervenção humana detectada para ${data.leadName} às ${timeStr}`);
+            console.log(`[Kanban] IA Pausada: ${data.leadName}`);
         });
 
         return () => {
