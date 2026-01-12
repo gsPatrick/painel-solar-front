@@ -30,6 +30,7 @@ export default function AgendaPage() {
     const [leads, setLeads] = useState([]);
     const [loading, setLoading] = useState(true);
     const [view, setView] = useState('month');
+    const [filter, setFilter] = useState('ALL'); // ALL, VISITA_TECNICA, INSTALACAO, LEMBRETE
 
     // Modal states
     const [showModal, setShowModal] = useState(false);
@@ -172,10 +173,14 @@ export default function AgendaPage() {
         return days;
     }, [currentDate]);
 
-    // Optimize: Pre-calculate appointments by day key (YYYY-MM-DD)
+    // Optimize: Pre-calculate appointments by day key (YYYY-MM-DD) with filter
     const appointmentsByDate = useMemo(() => {
         const map = new Map();
-        appointments.forEach(apt => {
+        const filteredAppointments = filter === 'ALL'
+            ? appointments
+            : appointments.filter(apt => apt.type === filter);
+
+        filteredAppointments.forEach(apt => {
             const dateStr = new Date(apt.date_time).toISOString().split('T')[0];
             if (!map.has(dateStr)) {
                 map.set(dateStr, []);
@@ -183,7 +188,7 @@ export default function AgendaPage() {
             map.get(dateStr).push(apt);
         });
         return map;
-    }, [appointments]);
+    }, [appointments, filter]);
 
     const getAppointmentsForDay = (date) => {
         // Handle timezone issues by using local date string components
@@ -284,6 +289,34 @@ export default function AgendaPage() {
                             Novo Agendamento
                         </button>
                     </div>
+                </div>
+
+                {/* Filter Tabs */}
+                <div className={styles.filterTabs}>
+                    <button
+                        className={`${styles.filterTab} ${filter === 'ALL' ? styles.active : ''}`}
+                        onClick={() => setFilter('ALL')}
+                    >
+                        📋 Todos
+                    </button>
+                    <button
+                        className={`${styles.filterTab} ${filter === 'VISITA_TECNICA' ? styles.active : ''}`}
+                        onClick={() => setFilter('VISITA_TECNICA')}
+                    >
+                        📍 Visita Técnica
+                    </button>
+                    <button
+                        className={`${styles.filterTab} ${filter === 'INSTALACAO' ? styles.active : ''}`}
+                        onClick={() => setFilter('INSTALACAO')}
+                    >
+                        🔧 Instalação
+                    </button>
+                    <button
+                        className={`${styles.filterTab} ${filter === 'LEMBRETE' ? styles.active : ''}`}
+                        onClick={() => setFilter('LEMBRETE')}
+                    >
+                        🔔 Lembretes
+                    </button>
                 </div>
 
                 <motion.div

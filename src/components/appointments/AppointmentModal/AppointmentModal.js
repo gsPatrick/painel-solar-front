@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, MapPin, Wrench } from 'lucide-react';
+import { Calendar, Clock, MapPin, Wrench, Bell } from 'lucide-react';
 import Modal, { modalStyles as styles } from '../../shared/Modal/Modal';
 
 const TYPES = [
     { value: 'VISITA_TECNICA', label: 'Visita Técnica', icon: MapPin, color: '#3B82F6' },
     { value: 'INSTALACAO', label: 'Instalação', icon: Wrench, color: '#10B981' },
+    { value: 'LEMBRETE', label: 'Lembrete', icon: Bell, color: '#F59E0B' },
 ];
 
 export default function AppointmentModal({
@@ -30,6 +31,7 @@ export default function AppointmentModal({
     });
 
     const [errors, setErrors] = useState({});
+    const [leadSearch, setLeadSearch] = useState('');
 
     // Effect 1: Reset form when Modal opens or Appointment changes
     useEffect(() => {
@@ -100,6 +102,12 @@ export default function AppointmentModal({
         onSubmit(data);
     };
 
+    // Filter leads based on search
+    const filteredLeads = leads.filter(l =>
+        l.name?.toLowerCase().includes(leadSearch.toLowerCase()) ||
+        l.phone?.includes(leadSearch)
+    );
+
     return (
         <Modal
             isOpen={isOpen}
@@ -165,15 +173,26 @@ export default function AppointmentModal({
                             </button>
                         )}
                     </div>
+                    {/* Search input for leads */}
+                    <input
+                        type="text"
+                        placeholder="🔍 Buscar lead por nome ou telefone..."
+                        value={leadSearch}
+                        onChange={(e) => setLeadSearch(e.target.value)}
+                        className={styles.input}
+                        style={{ marginBottom: '8px' }}
+                    />
                     <select
                         name="lead_id"
                         value={formData.lead_id}
                         onChange={handleChange}
                         className={`${styles.select} ${errors.lead_id ? styles.inputError : ''}`}
+                        size={Math.min(filteredLeads.length + 1, 6)}
+                        style={{ height: 'auto', minHeight: '44px' }}
                     >
                         <option value="">Selecione um lead...</option>
-                        {isOpen && leads.map((l) => (
-                            <option key={l.id} value={l.id}>{l.name}</option>
+                        {isOpen && filteredLeads.map((l) => (
+                            <option key={l.id} value={l.id}>{l.name} - {l.phone}</option>
                         ))}
                     </select>
                     {errors.lead_id && <span className={styles.errorText}>{errors.lead_id}</span>}
