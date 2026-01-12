@@ -30,6 +30,13 @@ export default function LeadModal({
         proposal_value: '',
         system_size_kwp: '',
         is_important: false,
+        // Qualification fields
+        monthly_bill: '',
+        segment: '',
+        roof_type: '',
+        city: '',
+        neighborhood: '',
+        equipment_increase: '',
     });
 
     const [errors, setErrors] = useState({});
@@ -47,6 +54,13 @@ export default function LeadModal({
                 proposal_value: lead.proposal_value || '',
                 system_size_kwp: lead.system_size_kwp || '',
                 is_important: lead.is_important || false,
+                // Qualification fields
+                monthly_bill: lead.monthly_bill || '',
+                segment: lead.segment || '',
+                roof_type: lead.roof_type || '',
+                city: lead.city || '',
+                neighborhood: lead.neighborhood || '',
+                equipment_increase: lead.equipment_increase || '',
             });
         } else {
             setFormData({
@@ -57,6 +71,12 @@ export default function LeadModal({
                 proposal_value: '',
                 system_size_kwp: '',
                 is_important: false,
+                monthly_bill: '',
+                segment: '',
+                roof_type: '',
+                city: '',
+                neighborhood: '',
+                equipment_increase: '',
             });
         }
         setErrors({});
@@ -240,6 +260,93 @@ export default function LeadModal({
                         className={styles.input}
                         placeholder="0.00"
                         step="0.01"
+                    />
+                </div>
+
+                {/* Qualification Fields Section */}
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+                    <div className={styles.sectionDivider}>
+                        <span>📋 Dados de Qualificação (preenchidos pela IA)</span>
+                    </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>Valor da Conta de Luz (R$)</label>
+                    <input
+                        type="number"
+                        name="monthly_bill"
+                        value={formData.monthly_bill}
+                        onChange={handleChange}
+                        className={styles.input}
+                        placeholder="Ex: 350"
+                    />
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>Segmento</label>
+                    <select
+                        name="segment"
+                        value={formData.segment}
+                        onChange={handleChange}
+                        className={styles.select}
+                    >
+                        <option value="">Não informado</option>
+                        <option value="residencial">🏠 Residencial</option>
+                        <option value="comercial">🏪 Comercial</option>
+                        <option value="rural">🌾 Rural</option>
+                        <option value="industrial">🏭 Industrial</option>
+                    </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>Tipo de Telhado</label>
+                    <select
+                        name="roof_type"
+                        value={formData.roof_type}
+                        onChange={handleChange}
+                        className={styles.select}
+                    >
+                        <option value="">Não informado</option>
+                        <option value="ceramica">🧱 Cerâmica</option>
+                        <option value="eternit">📦 Eternit/Fibrocimento</option>
+                        <option value="metalico">🔩 Metálico</option>
+                        <option value="laje">🏗️ Laje</option>
+                    </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>Cidade</label>
+                    <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        className={styles.input}
+                        placeholder="Ex: Salvador"
+                    />
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>Bairro</label>
+                    <input
+                        type="text"
+                        name="neighborhood"
+                        value={formData.neighborhood}
+                        onChange={handleChange}
+                        className={styles.input}
+                        placeholder="Ex: Pituba"
+                    />
+                </div>
+
+                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+                    <label className={styles.label}>Equipamento que vai aumentar consumo</label>
+                    <input
+                        type="text"
+                        name="equipment_increase"
+                        value={formData.equipment_increase}
+                        onChange={handleChange}
+                        className={styles.input}
+                        placeholder="Ex: Ar-condicionado, piscina"
                     />
                 </div>
 

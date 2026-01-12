@@ -353,6 +353,22 @@
     margin-top: 4px;
 }
 
+/* Section Divider */
+.sectionDivider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    margin: 8px 0;
+    border-top: 1px solid #E2E8F0;
+}
+
+.sectionDivider span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4318FF;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     .formGrid.cols2 {
