@@ -146,11 +146,28 @@
 
 .dayCell {
     min-height: 120px;
+    max-height: 150px;
     padding: var(--spacing-sm);
     background: var(--color-bg-card);
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    /* Enable scroll */
     transition: background var(--transition-fast);
+}
+
+/* Custom scrollbar for dayCell */
+.dayCell::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dayCell::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dayCell::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 4px;
 }
 
 .dayCell:hover {

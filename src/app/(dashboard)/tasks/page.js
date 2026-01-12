@@ -4,56 +4,38 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus,
-    RefreshCw,
+    Search,
     Check,
     User,
     Calendar,
     Edit2,
     Trash2,
-    CheckSquare,
     Clock,
-    AlertCircle,
-    UserPlus
+    Filter,
+    CheckCircle
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import TaskModal from '@/components/tasks/TaskModal/TaskModal';
 import LeadModal from '@/components/leads/LeadModal/LeadModal';
-import ConfirmModal from '@/components/shared/ConfirmModal/ConfirmModal';
-import { taskService, leadService, pipelineService } from '@/services/api';
+import { taskService, leadService, appointmentService } from '@/services/api'; // Added appointmentService for integration if needed
 import styles from './page.module.css';
 
-// Demo data
-const DEMO_TASKS = [
-    { id: '1', title: 'Follow-up com Roberto Ferreira', type: 'FOLLOW_UP', status: 'pending', due_date: new Date(), lead: { name: 'Roberto Ferreira' } },
-    { id: '2', title: 'Enviar proposta para Fernanda Lima', type: 'PROPOSAL', status: 'pending', due_date: new Date(Date.now() + 86400000), lead: { name: 'Fernanda Lima' } },
-    { id: '3', title: 'Confirmar visita técnica Pedro', type: 'OTHER', status: 'pending', due_date: new Date(Date.now() - 86400000), lead: { name: 'Pedro Henrique' } },
-    { id: '4', title: 'Negociar valor com Luciana', type: 'FOLLOW_UP', status: 'done', due_date: new Date(Date.now() - 172800000), lead: { name: 'Luciana Costa' } },
-];
-
-const DEMO_LEADS = [
-    { id: '1', name: 'Roberto Ferreira' },
-    { id: '2', name: 'Fernanda Lima' },
-    { id: '3', name: 'Pedro Henrique' },
-    { id: '4', name: 'Luciana Costa' },
-];
-
-const DEMO_PIPELINES = [
-    { id: '1', title: 'Novo Lead', color: '#4318FF' },
-    { id: '2', title: 'Qualificado', color: '#6AD2FF' },
-];
-
 export default function TasksPage() {
-    const [loading, setLoading] = useState(true);
+    // Data States
     const [tasks, setTasks] = useState([]);
     const [leads, setLeads] = useState([]);
-    const [pipelines, setPipelines] = useState([]);
-    const [filter, setFilter] = useState('all');
+    const [loading, setLoading] = useState(true);
+
+    // Filters
+    const [statusFilter, setStatusFilter] = useState('pending'); // 'pending', 'done'
+    const [dateFilter, setDateFilter] = useState('all'); // 'all', 'today', 'tomorrow', 'overdue', 'week'
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Modals
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [showLeadModal, setShowLeadModal] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
-    const [deleteTask, setDeleteTask] = useState(null);
     const [modalLoading, setModalLoading] = useState(false);
-    const [pendingTaskData, setPendingTaskData] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -62,327 +44,313 @@ export default function TasksPage() {
     const loadData = async () => {
         setLoading(true);
         try {
-            const [tasksData, leadsData, pipelinesData] = await Promise.all([
+            const [fetchedTasks, fetchedLeads] = await Promise.all([
                 taskService.getAll(),
-                leadService.getAll(),
-                pipelineService.getAll(),
+                leadService.getAll()
             ]);
-            setTasks(tasksData);
-            setLeads(leadsData);
-            setPipelines(pipelinesData);
+            setTasks(fetchedTasks || []);
+            setLeads(fetchedLeads || []);
         } catch (error) {
-            console.log('Using demo data');
-            setTasks(DEMO_TASKS);
-            setLeads(DEMO_LEADS);
-            setPipelines(DEMO_PIPELINES);
+            console.error("Error loading tasks:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleOpenTaskModal = () => {
-        if (leads.length === 0) {
-            // No leads - show option to create one
-            setShowLeadModal(true);
-        } else {
-            setShowTaskModal(true);
-        }
-    };
-
-    const handleCreateLead = async (data) => {
-        setModalLoading(true);
-        try {
-            const newLead = await leadService.create(data);
-            setLeads(prev => [...prev, newLead]);
-            setShowLeadModal(false);
-            // Now open task modal
-            setShowTaskModal(true);
-        } catch (error) {
-            // Demo mode
-            const newLead = { id: Date.now().toString(), ...data };
-            setLeads(prev => [...prev, newLead]);
-            setShowLeadModal(false);
-            setShowTaskModal(true);
-        } finally {
-            setModalLoading(false);
-        }
-    };
+    // --- Actions ---
 
     const handleCreateTask = async (data) => {
         setModalLoading(true);
         try {
-            const newTask = await taskService.create(data);
-            setTasks((prev) => [newTask, ...prev]);
-            setShowTaskModal(false);
-        } catch (error) {
-            // Demo mode
-            const newTask = {
-                id: Date.now().toString(),
-                ...data,
-                status: 'pending',
-                lead: leads.find(l => l.id === data.lead_id)
-            };
-            setTasks((prev) => [newTask, ...prev]);
-            setShowTaskModal(false);
-        } finally {
-            setModalLoading(false);
-        }
-    };
-
-    const handleUpdateTask = async (data) => {
-        setModalLoading(true);
-        try {
-            const updated = await taskService.update(editingTask.id, data);
-            setTasks((prev) => prev.map(t => t.id === editingTask.id ? updated : t));
-            setEditingTask(null);
-        } catch (error) {
-            // Demo mode
-            setTasks((prev) => prev.map(t => t.id === editingTask.id ? { ...t, ...data } : t));
-            setEditingTask(null);
-        } finally {
-            setModalLoading(false);
-        }
-    };
-
-    const handleDeleteTask = async () => {
-        setModalLoading(true);
-        try {
-            await taskService.delete(deleteTask.id);
-            setTasks((prev) => prev.filter(t => t.id !== deleteTask.id));
-            setDeleteTask(null);
-        } catch (error) {
-            setTasks((prev) => prev.filter(t => t.id !== deleteTask.id));
-            setDeleteTask(null);
-        } finally {
-            setModalLoading(false);
-        }
-    };
-
-    const handleToggleDone = async (task) => {
-        const newStatus = task.status === 'done' ? 'pending' : 'done';
-        try {
-            if (newStatus === 'done') {
-                await taskService.markAsDone(task.id);
+            if (editingTask) {
+                const updated = await taskService.update(editingTask.id, data);
+                setTasks(prev => prev.map(t => t.id === updated.id ? updated : t));
+                setEditingTask(null);
             } else {
-                await taskService.update(task.id, { status: 'pending' });
+                const newT = await taskService.create(data);
+                setTasks(prev => [newT, ...prev]);
             }
-            setTasks((prev) => prev.map(t => t.id === task.id ? { ...t, status: newStatus } : t));
+            setShowTaskModal(false);
         } catch (error) {
-            setTasks((prev) => prev.map(t => t.id === task.id ? { ...t, status: newStatus } : t));
+            console.error(error);
+            alert("Erro ao salvar tarefa");
+        } finally {
+            setModalLoading(false);
         }
     };
 
-    const getTaskDueClass = (task) => {
-        if (task.status === 'done') return styles.done;
-        const now = new Date();
-        const due = new Date(task.due_date);
-        const diffDays = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
-        if (diffDays < 0) return styles.overdue;
-        if (diffDays === 0) return styles.today;
-        return styles.upcoming;
+    const handleDeleteTask = async (id) => {
+        if (!confirm('Excluir esta tarefa?')) return;
+        try {
+            await taskService.delete(id);
+            setTasks(prev => prev.filter(t => t.id !== id));
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    const getTypeClass = (type) => {
-        const classes = {
-            FOLLOW_UP: styles.followUp,
-            PROPOSAL: styles.proposal,
-            OTHER: styles.other,
-        };
-        return classes[type] || styles.other;
+    const handleCompleteTask = async (task) => {
+        try {
+            if (task.status === 'done') {
+                // Reopen
+                await taskService.update(task.id, { status: 'pending' });
+                setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'pending' } : t));
+            } else {
+                // Complete
+                await taskService.markAsDone(task.id);
+                setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'done' } : t));
+            }
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    const getTypeLabel = (type) => {
-        const labels = { FOLLOW_UP: 'Follow-up', PROPOSAL: 'Proposta', OTHER: 'Outro' };
-        return labels[type] || type;
+    // --- Filtering Logic ---
+
+    const getFilteredTasks = () => {
+        return tasks.filter(task => {
+            // 1. Status Filter
+            if (statusFilter !== 'all' && task.status !== statusFilter) return false;
+
+            // 2. Search
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                const leadName = task.lead?.name?.toLowerCase() || '';
+                const title = task.title?.toLowerCase() || '';
+                if (!leadName.includes(q) && !title.includes(q)) return false;
+            }
+
+            // 3. Date Filter
+            if (dateFilter !== 'all') {
+                const due = new Date(task.due_date);
+                due.setHours(0, 0, 0, 0);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (dateFilter === 'today') {
+                    if (due.getTime() !== today.getTime()) return false;
+                } else if (dateFilter === 'tomorrow') {
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(today.getDate() + 1);
+                    if (due.getTime() !== tomorrow.getTime()) return false;
+                } else if (dateFilter === 'overdue') {
+                    if (task.status !== 'done' && due < today) return true;
+                    return false;
+                } else if (dateFilter === 'week') {
+                    const nextWeek = new Date(today);
+                    nextWeek.setDate(today.getDate() + 7);
+                    if (due < today || due > nextWeek) return false;
+                }
+            }
+
+            return true;
+        })
+            .sort((a, b) => new Date(a.due_date) - new Date(b.due_date)); // Sort by date ascending
     };
 
-    const formatDate = (date) => {
-        const d = new Date(date);
-        const now = new Date();
-        const diffDays = Math.ceil((d - now) / (1000 * 60 * 60 * 24));
-        if (diffDays === 0) return 'Hoje';
-        if (diffDays === 1) return 'Amanhã';
-        if (diffDays === -1) return 'Ontem';
+    const filteredTasks = getFilteredTasks();
+
+    // --- Helper UI ---
+
+    const formatDate = (dateString) => {
+        const d = new Date(dateString);
         return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        // e.g. "12 jan"
     };
 
-    const filteredTasks = tasks.filter(t => {
-        if (filter === 'pending') return t.status === 'pending';
-        if (filter === 'done') return t.status === 'done';
-        if (filter === 'overdue') {
-            return t.status === 'pending' && new Date(t.due_date) < new Date();
-        }
-        return true;
-    });
+    const isLate = (task) => {
+        if (task.status === 'done') return false;
+        const due = new Date(task.due_date);
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        return due < now;
+    };
 
     return (
-        <>
-            <Header title="Tarefas" />
+        <div className={styles.container}>
+            {/* Header */}
+            <div className={styles.header}>
+                <h1 className={styles.title}>Minhas Tarefas</h1>
+                <button
+                    className={styles.btnNew}
+                    onClick={() => {
+                        if (leads.length === 0) setShowLeadModal(true);
+                        else {
+                            setEditingTask(null);
+                            setShowTaskModal(true);
+                        }
+                    }}
+                >
+                    <Plus size={20} />
+                    Nova Tarefa
+                </button>
+            </div>
 
-            <div className={styles.container}>
-                <div className={styles.header}>
-                    <div className={styles.headerLeft}>
-                        <div className={styles.tabs}>
-                            <button
-                                className={`${styles.tab} ${filter === 'all' ? styles.active : ''}`}
-                                onClick={() => setFilter('all')}
-                            >
-                                Todas
-                            </button>
-                            <button
-                                className={`${styles.tab} ${filter === 'pending' ? styles.active : ''}`}
-                                onClick={() => setFilter('pending')}
-                            >
-                                Pendentes
-                            </button>
-                            <button
-                                className={`${styles.tab} ${filter === 'overdue' ? styles.active : ''}`}
-                                onClick={() => setFilter('overdue')}
-                            >
-                                Atrasadas
-                            </button>
-                            <button
-                                className={`${styles.tab} ${filter === 'done' ? styles.active : ''}`}
-                                onClick={() => setFilter('done')}
-                            >
-                                Concluídas
-                            </button>
-                        </div>
-                    </div>
+            {/* Filter Bar */}
+            <div className={styles.filtersContainer}>
+                {/* Search */}
+                <div className={styles.searchWrapper}>
+                    <Search className={styles.searchIcon} size={18} />
+                    <input
+                        className={styles.searchInput}
+                        placeholder="🔍 Buscar tarefa ou cliente..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                    />
+                </div>
 
-                    <div className={styles.actions}>
-                        <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={loadData}>
-                            <RefreshCw size={16} />
+                {/* Filter Groups */}
+                <div className={styles.filterGroups}>
+                    {/* Status Toggle */}
+                    <div className={styles.filterGroup}>
+                        <button
+                            className={`${styles.filterBtn} ${statusFilter === 'pending' ? styles.active : ''}`}
+                            onClick={() => setStatusFilter('pending')}
+                        >
+                            Pendentes
                         </button>
                         <button
-                            className={`${styles.btn} ${styles.btnPrimary}`}
-                            onClick={handleOpenTaskModal}
+                            className={`${styles.filterBtn} ${statusFilter === 'done' ? styles.active : ''}`}
+                            onClick={() => setStatusFilter('done')}
                         >
-                            <Plus size={16} />
-                            Nova Tarefa
+                            Concluídas
+                        </button>
+                    </div>
+
+                    {/* Date Filters */}
+                    <div className={styles.filterGroup}>
+                        <button
+                            className={`${styles.filterBtn} ${dateFilter === 'all' ? styles.active : ''}`}
+                            onClick={() => setDateFilter('all')}
+                        >
+                            Todas
+                        </button>
+                        <button
+                            className={`${styles.filterBtn} ${dateFilter === 'overdue' ? styles.active : ''}`}
+                            onClick={() => { setDateFilter('overdue'); setStatusFilter('pending'); }}
+                            style={{ color: dateFilter === 'overdue' ? '#DC2626' : undefined }}
+                        >
+                            Atrasadas
+                        </button>
+                        <button
+                            className={`${styles.filterBtn} ${dateFilter === 'today' ? styles.active : ''}`}
+                            onClick={() => setDateFilter('today')}
+                        >
+                            Hoje
+                        </button>
+                        <button
+                            className={`${styles.filterBtn} ${dateFilter === 'tomorrow' ? styles.active : ''}`}
+                            onClick={() => setDateFilter('tomorrow')}
+                        >
+                            Amanhã
                         </button>
                     </div>
                 </div>
+            </div>
 
-                <div className={styles.grid}>
-                    {loading ? (
-                        [...Array(6)].map((_, i) => (
-                            <div key={i} className={styles.skeletonCard} />
-                        ))
-                    ) : filteredTasks.length === 0 ? (
-                        <div className={styles.emptyState}>
-                            <div className={styles.emptyIcon}>
-                                <CheckSquare size={40} />
-                            </div>
-                            <h3 className={styles.emptyTitle}>Nenhuma tarefa encontrada</h3>
-                            <p className={styles.emptyText}>
-                                {filter === 'all'
-                                    ? 'Crie sua primeira tarefa para começar a acompanhar seus leads.'
-                                    : 'Não há tarefas nesta categoria.'}
-                            </p>
-                            {filter === 'all' && (
-                                <button
-                                    className={`${styles.btn} ${styles.btnPrimary}`}
-                                    onClick={handleOpenTaskModal}
-                                >
-                                    <Plus size={16} />
-                                    Criar Tarefa
-                                </button>
-                            )}
-                        </div>
-                    ) : (
-                        <AnimatePresence>
-                            {filteredTasks.map((task, index) => (
+            {/* Task Grid */}
+            <div className={styles.taskGrid}>
+                <AnimatePresence>
+                    {filteredTasks.length > 0 ? (
+                        filteredTasks.map(task => {
+                            const late = isLate(task);
+                            const statusClass = task.status === 'done' ? 'status-done' : late ? 'status-late' : 'status-pending';
+                            const priorityClass = late ? 'priority-high' : 'priority-normal'; // Simplify priority logic to visual urgency
+
+                            return (
                                 <motion.div
                                     key={task.id}
-                                    className={`${styles.taskCard} ${getTaskDueClass(task)}`}
-                                    initial={{ opacity: 0, y: 20 }}
+                                    className={`${styles.taskCard} ${styles[statusClass]} ${styles[priorityClass]}`}
+                                    initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
-                                    transition={{ delay: index * 0.05 }}
+                                    onClick={() => setEditingTask(task)} // Click card to view/edit? No, seperate edit button is safer
                                 >
-                                    <button
-                                        className={`${styles.checkbox} ${task.status === 'done' ? styles.checked : ''}`}
-                                        onClick={() => handleToggleDone(task)}
-                                    >
-                                        {task.status === 'done' && <Check size={14} />}
-                                    </button>
+                                    <div className={styles.cardLeftBorder}></div>
 
-                                    <div className={styles.taskContent}>
-                                        <div className={styles.taskTitle}>{task.title}</div>
-                                        <div className={styles.taskMeta}>
-                                            <span className={styles.taskLead}>
-                                                <User size={12} />
-                                                {task.lead?.name || 'Lead'}
-                                            </span>
-                                            <span className={styles.taskDue}>
-                                                <Calendar size={12} />
-                                                {formatDate(task.due_date)}
-                                            </span>
-                                            <span className={`${styles.taskType} ${getTypeClass(task.type)}`}>
-                                                {getTypeLabel(task.type)}
-                                            </span>
+                                    <div className={styles.cardHeader}>
+                                        <h3 className={styles.taskTitle}>{task.title}</h3>
+                                        <span className={`${styles.statusBadge} ${styles[statusClass]}`}>
+                                            {task.status === 'done' ? 'Concluída' : late ? 'Atrasada' : 'Pendente'}
+                                        </span>
+                                    </div>
+
+                                    <div className={styles.cardBody}>
+                                        {task.lead && (
+                                            <div className={styles.infoRow}>
+                                                <User size={14} className={styles.icon} />
+                                                <span className={styles.leadName}>{task.lead.name}</span>
+                                            </div>
+                                        )}
+                                        <div className={styles.infoRow}>
+                                            <Calendar size={14} className={styles.icon} />
+                                            <span>{formatDate(task.due_date)}</span>
+                                            {task.due_date && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>({new Date(task.due_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})</span>}
                                         </div>
                                     </div>
 
-                                    <div className={styles.taskActions}>
+                                    <div className={styles.cardFooter}>
+                                        <button
+                                            className={`${styles.actionBtn} ${task.status === 'done' ? styles.btnComplete : ''}`}
+                                            title={task.status === 'done' ? "Reabrir" : "Concluir"}
+                                            onClick={(e) => { e.stopPropagation(); handleCompleteTask(task); }}
+                                        >
+                                            {task.status === 'done' ? <CheckCircle size={18} /> : <Check size={18} />}
+                                        </button>
                                         <button
                                             className={styles.actionBtn}
-                                            onClick={() => setEditingTask(task)}
+                                            title="Editar"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setEditingTask(task);
+                                                setShowTaskModal(true);
+                                            }}
                                         >
                                             <Edit2 size={16} />
                                         </button>
                                         <button
-                                            className={`${styles.actionBtn} ${styles.danger}`}
-                                            onClick={() => setDeleteTask(task)}
+                                            className={styles.actionBtn}
+                                            title="Excluir"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteTask(task.id);
+                                            }}
                                         >
                                             <Trash2 size={16} />
                                         </button>
                                     </div>
                                 </motion.div>
-                            ))}
-                        </AnimatePresence>
+                            );
+                        })
+                    ) : (
+                        <div className={styles.emptyState}>
+                            <p>Nenhuma tarefa encontrada com esses filtros.</p>
+                        </div>
                     )}
-                </div>
+                </AnimatePresence>
             </div>
 
-            {/* Create Task Modal */}
+            {/* Task Modal */}
             <TaskModal
                 isOpen={showTaskModal}
-                onClose={() => setShowTaskModal(false)}
+                onClose={() => { setShowTaskModal(false); setEditingTask(null); }}
                 onSubmit={handleCreateTask}
-                leads={leads}
-                loading={modalLoading}
-            />
-
-            {/* Edit Task Modal */}
-            <TaskModal
-                isOpen={!!editingTask}
-                onClose={() => setEditingTask(null)}
-                onSubmit={handleUpdateTask}
                 task={editingTask}
                 leads={leads}
                 loading={modalLoading}
             />
 
-            {/* Create Lead Modal (when no leads exist) */}
+            {/* Lead Modal (Quick Create) */}
             <LeadModal
                 isOpen={showLeadModal}
                 onClose={() => setShowLeadModal(false)}
-                onSubmit={handleCreateLead}
-                pipelines={pipelines}
-                loading={modalLoading}
+                onSubmit={async (data) => {
+                    const newLead = await leadService.create(data);
+                    setLeads(prev => [newLead, ...prev]);
+                    setShowLeadModal(false);
+                    setShowTaskModal(true);
+                }}
             />
-
-            {/* Delete Confirm */}
-            <ConfirmModal
-                isOpen={!!deleteTask}
-                onClose={() => setDeleteTask(null)}
-                onConfirm={handleDeleteTask}
-                title="Excluir Tarefa"
-                message={`Tem certeza que deseja excluir a tarefa "${deleteTask?.title}"? Esta ação não pode ser desfeita.`}
-                loading={modalLoading}
-            />
-        </>
+        </div>
     );
 }

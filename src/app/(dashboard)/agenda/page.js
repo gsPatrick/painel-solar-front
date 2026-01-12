@@ -346,8 +346,7 @@ export default function AgendaPage() {
                     ) : (
                         monthDays.map(({ date, isOtherMonth }, index) => {
                             const dayAppointments = getAppointmentsForDay(date);
-                            const displayAppointments = dayAppointments.slice(0, 3);
-                            const moreCount = dayAppointments.length - 3;
+                            // Show ALL appointments (scrollable via CSS)
 
                             return (
                                 <motion.div
@@ -365,7 +364,7 @@ export default function AgendaPage() {
                                 >
                                     <span className={styles.dayNumber}>{date.getDate()}</span>
                                     <div className={styles.events}>
-                                        {displayAppointments.map((apt) => (
+                                        {dayAppointments.map((apt) => (
                                             <div
                                                 key={apt.id}
                                                 className={`
@@ -376,6 +375,10 @@ export default function AgendaPage() {
                                                                 apt.type === 'TASK' ? styles.task : styles.instalacao}
                           ${apt.status === 'cancelled' ? styles.cancelled : ''}
                         `}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleEventClick(apt);
+                                                }}
                                             >
                                                 {apt.type === 'VISITA_TECNICA' ? (
                                                     <MapPin size={10} />
@@ -389,14 +392,9 @@ export default function AgendaPage() {
                                                     <Wrench size={10} />
                                                 )}
                                                 <span>{formatTime(apt.date_time)}</span>
-                                                <span>{apt.lead?.name?.split(' ')[0]}</span>
+                                                <span className={styles.leadName}>{apt.lead?.name?.split(' ')[0]}</span>
                                             </div>
                                         ))}
-                                        {moreCount > 0 && (
-                                            <span className={styles.moreEvents}>
-                                                +{moreCount} mais
-                                            </span>
-                                        )}
                                     </div>
                                 </motion.div>
                             );
