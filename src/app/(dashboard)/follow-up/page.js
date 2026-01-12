@@ -194,6 +194,31 @@ export default function FollowUpPage() {
         }
     };
 
+    // Update rule message in local state
+    const handleUpdateRuleMessage = (ruleId, newMessage) => {
+        setRules(prev => prev.map(rule =>
+            rule.id === ruleId ? { ...rule, message_template: newMessage } : rule
+        ));
+    };
+
+    // Save all rules to backend
+    const handleSaveAllRules = async () => {
+        setSaving(true);
+        try {
+            for (const rule of rules) {
+                await followupService.updateRule(rule.id, {
+                    message_template: rule.message_template
+                });
+            }
+            alert('✅ Todas as regras foram salvas com sucesso!');
+        } catch (err) {
+            console.error('Error saving rules:', err);
+            alert('❌ Erro ao salvar regras: ' + err.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const togglePipeline = (id) => {
         setExpandedPipelines(prev => ({ ...prev, [id]: !prev[id] }));
     };
@@ -552,146 +577,117 @@ export default function FollowUpPage() {
                             )}
                         </div>
 
-                        {/* Rules List */}
-                        <div className={styles.pipelineRules}>
-                            {/* Existing Rules Table */}
-                            <table className={styles.rulesTable}>
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Delay</th>
-                                        <th>Mensagem</th>
-                                        <th style={{ width: 50 }}></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredRules.length > 0 ? filteredRules
-                                        .sort((a, b) => a.step_number - b.step_number)
-                                        .map(rule => (
-                                            <tr key={rule.id}>
-                                                <td>#{rule.step_number}</td>
-                                                <td>{formatDelay(rule.delay_hours)}</td>
-                                                <td className={styles.msgPreview}>{rule.message_template}</td>
-                                                <td>
-                                                    <button
-                                                        className={styles.iconBtn}
-                                                        onClick={() => handleDeleteRule(rule.id)}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        )) : (
-                                        <tr>
-                                            <td colSpan="4" style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
-                                                Nenhuma regra configurada para {showPropostaRules ? 'Proposta Enviada' : 'Entrada'}. Adicione abaixo.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-
-                            {/* Add Rule Form */}
-                            <div style={{
-                                marginTop: '24px',
-                                padding: '20px',
-                                background: 'linear-gradient(135deg, rgba(67, 24, 255, 0.08) 0%, rgba(67, 24, 255, 0.02) 100%)',
-                                borderRadius: '12px',
-                                border: '1px solid rgba(67, 24, 255, 0.15)'
-                            }}>
-                                <h4 style={{ margin: '0 0 16px 0', fontSize: '1rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <Plus size={18} style={{ color: 'var(--color-primary)' }} />
-                                    Adicionar Nova Regra ({showPropostaRules ? 'Proposta Enviada' : 'Entrada'})
-                                </h4>
-
-                                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                                    {/* Delay Input Group */}
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                        <label style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
-                                            Tempo de espera
-                                        </label>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            <input
-                                                type="number"
-                                                placeholder="Ex: 30"
-                                                min="1"
-                                                step="1"
-                                                value={newRuleValues['default']?.delayValue || ''}
-                                                onChange={(e) => handleNewRuleChange('default', 'delayValue', e.target.value)}
-                                                style={{
-                                                    width: '80px',
-                                                    padding: '10px 12px',
-                                                    borderRadius: '8px',
-                                                    border: '1px solid var(--color-border)',
-                                                    background: 'var(--color-bg-input)',
-                                                    color: 'var(--color-text-primary)',
-                                                    fontSize: '0.9rem'
-                                                }}
-                                            />
-                                            <select
-                                                value={newRuleValues['default']?.delayUnit || 'hours'}
-                                                onChange={(e) => handleNewRuleChange('default', 'delayUnit', e.target.value)}
-                                                style={{
-                                                    padding: '10px 12px',
-                                                    borderRadius: '8px',
-                                                    border: '1px solid var(--color-border)',
-                                                    background: 'var(--color-bg-input)',
-                                                    color: 'var(--color-text-primary)',
-                                                    fontSize: '0.9rem',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                <option value="minutes">Minutos</option>
-                                                <option value="hours">Horas</option>
-                                                <option value="days">Dias</option>
-                                            </select>
+                        {/* Rules List - Editable Cards */}
+                        <div className={styles.rulesList}>
+                            {filteredRules.length > 0 ? (
+                                filteredRules
+                                    .sort((a, b) => a.step_number - b.step_number)
+                                    .map(rule => (
+                                        <div key={rule.id} className={styles.ruleCard}>
+                                            <div className={styles.ruleCardHeader}>
+                                                <div className={styles.ruleCardInfo}>
+                                                    <Clock size={18} />
+                                                    <span className={styles.ruleCardStep}>
+                                                        Mensagem {rule.step_number}
+                                                    </span>
+                                                    <span className={styles.ruleCardDelay}>
+                                                        após {formatDelay(rule.delay_hours)}
+                                                    </span>
+                                                </div>
+                                                <button
+                                                    className={styles.deleteRuleBtn}
+                                                    onClick={() => handleDeleteRule(rule.id)}
+                                                    title="Excluir regra"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                            <div className={styles.ruleCardBody}>
+                                                <label className={styles.ruleCardLabel}>
+                                                    <MessageSquare size={16} />
+                                                    Texto da mensagem (use <code>{'{nome}'}</code> para nome do lead)
+                                                </label>
+                                                <textarea
+                                                    className={styles.ruleCardTextarea}
+                                                    value={rule.message_template}
+                                                    onChange={(e) => handleUpdateRuleMessage(rule.id, e.target.value)}
+                                                    rows={3}
+                                                    placeholder="Digite sua mensagem aqui..."
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
-
-                                    {/* Message Input */}
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, minWidth: '250px' }}>
-                                        <label style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
-                                            Mensagem (use {'{nome}'} para personalizar)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            placeholder="Ex: Oi {nome}, ainda tem interesse em energia solar?"
-                                            value={newRuleValues['default']?.message || ''}
-                                            onChange={(e) => handleNewRuleChange('default', 'message', e.target.value)}
-                                            style={{
-                                                padding: '10px 12px',
-                                                borderRadius: '8px',
-                                                border: '1px solid var(--color-border)',
-                                                background: 'var(--color-bg-input)',
-                                                color: 'var(--color-text-primary)',
-                                                fontSize: '0.9rem'
-                                            }}
-                                        />
-                                    </div>
-
-                                    {/* Add Button */}
-                                    <button
-                                        onClick={() => handleAddRuleForType(showPropostaRules ? 'proposta' : 'entrada')}
-                                        style={{
-                                            padding: '10px 24px',
-                                            borderRadius: '8px',
-                                            border: 'none',
-                                            background: 'var(--color-primary)',
-                                            color: 'white',
-                                            fontSize: '0.9rem',
-                                            fontWeight: 600,
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            transition: 'all 0.2s',
-                                            boxShadow: '0 4px 12px rgba(67, 24, 255, 0.25)'
-                                        }}
-                                    >
-                                        <Plus size={18} /> Adicionar
-                                    </button>
+                                    ))
+                            ) : (
+                                <div className={styles.emptyRules}>
+                                    <AlertCircle size={32} />
+                                    <p>Nenhuma regra configurada para {showPropostaRules ? 'Proposta Enviada' : 'Entrada'}.</p>
+                                    <p>Adicione uma nova regra abaixo! 👇</p>
                                 </div>
+                            )}
+                        </div>
+
+                        {/* Add Rule Form */}
+                        <div className={styles.addRuleSection}>
+                            <h4 className={styles.addRuleTitle}>
+                                <Plus size={20} />
+                                Adicionar Nova Regra
+                            </h4>
+
+                            <div className={styles.addRuleForm}>
+                                <div className={styles.addRuleDelay}>
+                                    <label>⏱️ Enviar após:</label>
+                                    <div className={styles.delayInputs}>
+                                        <input
+                                            type="number"
+                                            placeholder="Ex: 1"
+                                            min="1"
+                                            value={newRuleValues['default']?.delayValue || ''}
+                                            onChange={(e) => handleNewRuleChange('default', 'delayValue', e.target.value)}
+                                            className={styles.delayNumber}
+                                        />
+                                        <select
+                                            value={newRuleValues['default']?.delayUnit || 'hours'}
+                                            onChange={(e) => handleNewRuleChange('default', 'delayUnit', e.target.value)}
+                                            className={styles.delayUnit}
+                                        >
+                                            <option value="minutes">Minutos</option>
+                                            <option value="hours">Horas</option>
+                                            <option value="days">Dias</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className={styles.addRuleMessage}>
+                                    <label>💬 Mensagem:</label>
+                                    <textarea
+                                        placeholder="Ex: Oi {nome}, ainda tem interesse em energia solar? 😊"
+                                        value={newRuleValues['default']?.message || ''}
+                                        onChange={(e) => handleNewRuleChange('default', 'message', e.target.value)}
+                                        className={styles.addRuleTextarea}
+                                        rows={2}
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={() => handleAddRuleForType(showPropostaRules ? 'proposta' : 'entrada')}
+                                    className={styles.addRuleButton}
+                                >
+                                    <Plus size={20} />
+                                    Adicionar Regra
+                                </button>
                             </div>
+                        </div>
+
+                        {/* Save Button */}
+                        <div className={styles.saveRulesSection}>
+                            <button
+                                className={styles.saveRulesBtn}
+                                onClick={handleSaveAllRules}
+                                disabled={saving}
+                            >
+                                <Save size={20} />
+                                {saving ? 'Salvando...' : 'Salvar Todas as Alterações'}
+                            </button>
                         </div>
                     </motion.div>
                 </div>
