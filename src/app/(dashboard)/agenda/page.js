@@ -11,7 +11,8 @@ import {
     MapPin,
     Wrench,
     Clock,
-    CheckSquare
+    CheckSquare,
+    Bell
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import AppointmentModal from '@/components/appointments/AppointmentModal/AppointmentModal';
@@ -51,9 +52,7 @@ export default function AgendaPage() {
         setLoading(true);
         try {
             const [fetchedAppointments, fetchedLeads, fetchedTasks] = await Promise.all([
-                appointmentService.getAll({
-                    date: currentDate.toISOString() // Or pass month/year range if API supports it
-                }),
+                appointmentService.getAll(), // Get ALL appointments, no date filter
                 leadService.getAll(),
                 taskService.getAll() // Fetch assignments
             ]);
@@ -362,12 +361,19 @@ export default function AgendaPage() {
                                                 key={apt.id}
                                                 className={`
                           ${styles.event} 
-                          ${apt.type === 'VISITA_TECNICA' ? styles.visitaTecnica : apt.type === 'TASK' ? styles.task : styles.instalacao}
+                          ${apt.type === 'VISITA_TECNICA' ? styles.visitaTecnica :
+                                                        apt.type === 'INSTALACAO' ? styles.instalacao :
+                                                            apt.type === 'LEMBRETE' ? styles.lembrete :
+                                                                apt.type === 'TASK' ? styles.task : styles.instalacao}
                           ${apt.status === 'cancelled' ? styles.cancelled : ''}
                         `}
                                             >
                                                 {apt.type === 'VISITA_TECNICA' ? (
                                                     <MapPin size={10} />
+                                                ) : apt.type === 'INSTALACAO' ? (
+                                                    <Wrench size={10} />
+                                                ) : apt.type === 'LEMBRETE' ? (
+                                                    <Bell size={10} />
                                                 ) : apt.type === 'TASK' ? (
                                                     <CheckSquare size={10} />
                                                 ) : (

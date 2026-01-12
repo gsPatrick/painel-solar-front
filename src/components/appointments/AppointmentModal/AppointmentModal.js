@@ -187,8 +187,6 @@ export default function AppointmentModal({
                         value={formData.lead_id}
                         onChange={handleChange}
                         className={`${styles.select} ${errors.lead_id ? styles.inputError : ''}`}
-                        size={Math.min(filteredLeads.length + 1, 6)}
-                        style={{ height: 'auto', minHeight: '44px' }}
                     >
                         <option value="">Selecione um lead...</option>
                         {isOpen && filteredLeads.map((l) => (

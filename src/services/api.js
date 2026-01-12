@@ -571,6 +571,11 @@ export const followupService = {
         const response = await api.delete(`/followup/rules/${id}`);
         return response.data;
     },
+
+    async updateRule(id, ruleData) {
+        const response = await api.put(`/followup/rules/${id}`, ruleData);
+        return response.data;
+    },
 };
 
 export default api;

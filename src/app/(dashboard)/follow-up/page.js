@@ -48,6 +48,9 @@ export default function FollowUpPage() {
     const [rules, setRules] = useState([]);
     const [expandedPipelines, setExpandedPipelines] = useState({});
     const [newRuleValues, setNewRuleValues] = useState({}); // { [pipelineId]: { delay: 24, message: '' } }
+    const [showPropostaRules, setShowPropostaRules] = useState(false);
+    const [entradaPipelineId, setEntradaPipelineId] = useState(null);
+    const [propostaPipelineId, setPropostaPipelineId] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -117,8 +120,77 @@ export default function FollowUpPage() {
             ]);
             setPipelines(fetchedPipelines || []);
             setRules(fetchedRules || []);
+
+            // Find Entrada and Proposta pipelines
+            const entradaPipeline = fetchedPipelines.find(p =>
+                p.title.toLowerCase().includes('entrada') ||
+                p.title.toLowerCase().includes('primeiro contato')
+            );
+            const propostaPipeline = fetchedPipelines.find(p =>
+                p.title.toLowerCase().includes('proposta')
+            );
+
+            if (entradaPipeline) setEntradaPipelineId(entradaPipeline.id);
+            if (propostaPipeline) setPropostaPipelineId(propostaPipeline.id);
         } catch (err) {
             console.error('Error loading rules:', err);
+        }
+    };
+
+    // Filter rules by current tab
+    const filteredRules = rules.filter(r => {
+        if (showPropostaRules) {
+            return r.pipeline_id === propostaPipelineId;
+        }
+        return r.pipeline_id === entradaPipelineId;
+    });
+
+    // Format delay for display
+    const formatDelay = (hours) => {
+        if (hours < 1) return `${Math.round(hours * 60)} min`;
+        if (hours < 24) return `${hours}h`;
+        const days = hours / 24;
+        return `${days} dia${days > 1 ? 's' : ''}`;
+    };
+
+    // Add rule for specific type
+    const handleAddRuleForType = async (type) => {
+        const pipelineId = type === 'proposta' ? propostaPipelineId : entradaPipelineId;
+        if (!pipelineId) {
+            alert(`Erro: Pipeline de ${type === 'proposta' ? 'Proposta Enviada' : 'Entrada'} não encontrado.`);
+            return;
+        }
+
+        const values = newRuleValues['default'] || { delayValue: 1, delayUnit: 'hours', message: '' };
+
+        // Convert to hours
+        let delayHours = Number(values.delayValue || 1);
+        if (values.delayUnit === 'minutes') {
+            delayHours = delayHours / 60;
+        } else if (values.delayUnit === 'days') {
+            delayHours = delayHours * 24;
+        }
+
+        // Calculate next step number for this pipeline
+        const pipelineRules = rules.filter(r => r.pipeline_id === pipelineId);
+        const nextStep = pipelineRules.length + 1;
+
+        try {
+            const newRule = await followupService.createRule({
+                pipeline_id: pipelineId,
+                step_number: nextStep,
+                delay_hours: delayHours,
+                message_template: values.message || `Olá {nome}, tudo bem?`
+            });
+
+            setRules([...rules, newRule]);
+            setNewRuleValues(prev => ({
+                ...prev,
+                ['default']: { delayValue: '', delayUnit: 'hours', message: '' }
+            }));
+        } catch (err) {
+            console.error('Error creating rule:', err);
+            alert('Erro ao criar regra: ' + (err.response?.data?.error || err.message));
         }
     };
 
@@ -428,7 +500,7 @@ export default function FollowUpPage() {
                         />
                     </motion.div>
 
-                    {/* Rules Configuration */}
+                    {/* Rules Configuration with Tabs */}
                     <motion.div
                         className={styles.card}
                         initial={{ opacity: 0, y: 20 }}
@@ -438,14 +510,49 @@ export default function FollowUpPage() {
                     >
                         <div className={styles.cardHeader}>
                             <Users size={20} />
-                            <h2>Régua de Follow-up (Primeiro Contato)</h2>
+                            <h2>Régua de Follow-up Automático</h2>
                         </div>
-                        <p className={styles.cardDescription}>
-                            Configure a sequência de mensagens automáticas para leads que <strong>não responderam</strong>.<br />
-                            <small style={{ color: '#888' }}>Ex: 1 hora após silêncio → 3 horas → 24 horas. Aplica-se apenas ao funil "Primeiro Contato".</small>
-                        </p>
 
-                        {/* Simple Rules List & Add Form */}
+                        {/* Tabs for Entrada and Proposta */}
+                        <div className={styles.followupTabs}>
+                            <button
+                                className={`${styles.followupTab} ${!showPropostaRules ? styles.active : ''}`}
+                                onClick={() => setShowPropostaRules(false)}
+                            >
+                                📥 Leads de Entrada / Primeiro Contato
+                            </button>
+                            <button
+                                className={`${styles.followupTab} ${showPropostaRules ? styles.active : ''}`}
+                                onClick={() => setShowPropostaRules(true)}
+                            >
+                                📋 Proposta Enviada
+                            </button>
+                        </div>
+
+                        {/* Info Box */}
+                        <div className={styles.followupInfo}>
+                            {!showPropostaRules ? (
+                                <>
+                                    <strong>📥 Leads de Entrada / Primeiro Contato</strong>
+                                    <p>Mensagens enviadas automaticamente quando o lead <strong>não responde</strong> às mensagens iniciais da IA.</p>
+                                    <p>O follow-up para quando o lead <strong>responder qualquer mensagem</strong>.</p>
+                                    <p style={{ marginTop: '8px', fontSize: '0.85rem', color: '#666' }}>
+                                        💡 <strong>Dica:</strong> Comece com intervalos curtos (1h, 3h) e depois mais longos (24h, 48h, 72h).
+                                    </p>
+                                </>
+                            ) : (
+                                <>
+                                    <strong>📋 Proposta Enviada</strong>
+                                    <p>Mensagens enviadas automaticamente quando o lead recebe a proposta e <strong>não interage</strong>.</p>
+                                    <p>Use mensagens mais suaves para não parecer cobrança. O objetivo é agendar uma visita técnica.</p>
+                                    <p style={{ marginTop: '8px', fontSize: '0.85rem', color: '#666' }}>
+                                        💡 <strong>Dica:</strong> Intervalos mais longos aqui (24h, 3 dias, 7 dias).
+                                    </p>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Rules List */}
                         <div className={styles.pipelineRules}>
                             {/* Existing Rules Table */}
                             <table className={styles.rulesTable}>
@@ -458,12 +565,12 @@ export default function FollowUpPage() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {rules.length > 0 ? rules
+                                    {filteredRules.length > 0 ? filteredRules
                                         .sort((a, b) => a.step_number - b.step_number)
                                         .map(rule => (
                                             <tr key={rule.id}>
                                                 <td>#{rule.step_number}</td>
-                                                <td>{rule.delay_hours}h</td>
+                                                <td>{formatDelay(rule.delay_hours)}</td>
                                                 <td className={styles.msgPreview}>{rule.message_template}</td>
                                                 <td>
                                                     <button
@@ -477,7 +584,7 @@ export default function FollowUpPage() {
                                         )) : (
                                         <tr>
                                             <td colSpan="4" style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
-                                                Nenhuma regra configurada. Adicione abaixo.
+                                                Nenhuma regra configurada para {showPropostaRules ? 'Proposta Enviada' : 'Entrada'}. Adicione abaixo.
                                             </td>
                                         </tr>
                                     )}
@@ -494,7 +601,7 @@ export default function FollowUpPage() {
                             }}>
                                 <h4 style={{ margin: '0 0 16px 0', fontSize: '1rem', color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Plus size={18} style={{ color: 'var(--color-primary)' }} />
-                                    Adicionar Nova Regra
+                                    Adicionar Nova Regra ({showPropostaRules ? 'Proposta Enviada' : 'Entrada'})
                                 </h4>
 
                                 <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
@@ -536,6 +643,7 @@ export default function FollowUpPage() {
                                             >
                                                 <option value="minutes">Minutos</option>
                                                 <option value="hours">Horas</option>
+                                                <option value="days">Dias</option>
                                             </select>
                                         </div>
                                     </div>
@@ -563,14 +671,7 @@ export default function FollowUpPage() {
 
                                     {/* Add Button */}
                                     <button
-                                        onClick={() => {
-                                            const firstPipeline = pipelines[0];
-                                            if (firstPipeline) {
-                                                handleAddRule(firstPipeline.id, 'default');
-                                            } else {
-                                                alert('Erro: Nenhum pipeline encontrado.');
-                                            }
-                                        }}
+                                        onClick={() => handleAddRuleForType(showPropostaRules ? 'proposta' : 'entrada')}
                                         style={{
                                             padding: '10px 24px',
                                             borderRadius: '8px',
