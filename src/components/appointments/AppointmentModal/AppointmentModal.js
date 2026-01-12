@@ -32,6 +32,7 @@ export default function AppointmentModal({
 
     const [errors, setErrors] = useState({});
     const [leadSearch, setLeadSearch] = useState('');
+    const [showDropdown, setShowDropdown] = useState(false);
 
     // Effect 1: Reset form when Modal opens or Appointment changes
     useEffect(() => {
@@ -46,6 +47,10 @@ export default function AppointmentModal({
                 time: dateTime.toTimeString().slice(0, 5),
                 notes: appointment.notes || '',
             });
+            // Populate search with lead name
+            const lead = leads.find(l => l.id === appointment.lead_id);
+            if (lead) setLeadSearch(lead.name);
+
         } else {
             const now = new Date();
             setFormData({
@@ -55,14 +60,19 @@ export default function AppointmentModal({
                 time: '09:00',
                 notes: '',
             });
+            setLeadSearch('');
         }
         setErrors({});
-    }, [appointment, isOpen]);
+        setShowDropdown(false);
+    }, [appointment, isOpen, leads]);
 
     // Effect 2: Set default lead if creating new appointment and leads load later
     useEffect(() => {
         if (isOpen && !appointment && !formData.lead_id && leads.length > 0) {
-            setFormData(prev => ({ ...prev, lead_id: leads[0].id }));
+            // Optional: Don't force select first lead in Autocomplete UX, usually better to leave empty
+            // But if user wants it:
+            // setFormData(prev => ({ ...prev, lead_id: leads[0].id }));
+            // setLeadSearch(leads[0].name);
         }
     }, [isOpen, appointment, leads, formData.lead_id]);
 
@@ -152,7 +162,7 @@ export default function AppointmentModal({
                     </div>
                 )}
 
-                <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+                <div className={`${styles.formGroup} ${styles.fullWidth}`} style={{ position: 'relative' }}>
                     <div className={styles.labelRow} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'center' }}>
                         <label className={styles.label} style={{ margin: 0 }}>Lead</label>
                         {onCreateLead && (
@@ -173,26 +183,71 @@ export default function AppointmentModal({
                             </button>
                         )}
                     </div>
-                    {/* Search input for leads */}
+
+                    {/* Autocomplete Input */}
                     <input
                         type="text"
-                        placeholder="🔍 Buscar lead por nome ou telefone..."
+                        placeholder="🔍 Buscar lead..."
                         value={leadSearch}
-                        onChange={(e) => setLeadSearch(e.target.value)}
-                        className={styles.input}
-                        style={{ marginBottom: '8px' }}
+                        onChange={(e) => {
+                            setLeadSearch(e.target.value);
+                            setShowDropdown(true);
+                            // Clear selection if typing (optional, or keep previous ID until new selection)
+                            // Better to clear ID if text doesn't match, but simple UX is keep typing filters list
+                        }}
+                        onFocus={() => setShowDropdown(true)}
+                        // Delay blur to allow click on dropdown item
+                        onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                        className={`${styles.input} ${errors.lead_id ? styles.inputError : ''}`}
+                        autoComplete="off"
                     />
-                    <select
-                        name="lead_id"
-                        value={formData.lead_id}
-                        onChange={handleChange}
-                        className={`${styles.select} ${errors.lead_id ? styles.inputError : ''}`}
-                    >
-                        <option value="">Selecione um lead...</option>
-                        {isOpen && filteredLeads.map((l) => (
-                            <option key={l.id} value={l.id}>{l.name} - {l.phone}</option>
-                        ))}
-                    </select>
+
+                    {/* Dropdown List */}
+                    {showDropdown && filteredLeads.length > 0 && (
+                        <ul style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            right: 0,
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            background: 'white',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '8px',
+                            zIndex: 1000,
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                            marginTop: '4px',
+                            listStyle: 'none',
+                            padding: 0,
+                            margin: 0
+                        }}>
+                            {filteredLeads.map((l) => (
+                                <li
+                                    key={l.id}
+                                    onClick={() => {
+                                        setFormData(prev => ({ ...prev, lead_id: l.id }));
+                                        setLeadSearch(l.name);
+                                        setShowDropdown(false);
+                                        setErrors(prev => ({ ...prev, lead_id: null }));
+                                    }}
+                                    style={{
+                                        padding: '10px 14px',
+                                        cursor: 'pointer',
+                                        borderBottom: '1px solid #f1f5f9',
+                                        fontSize: '0.9rem',
+                                        background: formData.lead_id === l.id ? '#f8fafc' : 'white',
+                                        color: '#1e293b'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
+                                    onMouseLeave={(e) => e.currentTarget.style.background = formData.lead_id === l.id ? '#f8fafc' : 'white'}
+                                >
+                                    <strong>{l.name}</strong>
+                                    <span style={{ fontSize: '0.8rem', color: '#64748b', marginLeft: '8px' }}>{l.phone}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
                     {errors.lead_id && <span className={styles.errorText}>{errors.lead_id}</span>}
                 </div>
 

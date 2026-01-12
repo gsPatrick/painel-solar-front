@@ -19,7 +19,8 @@ import AppointmentModal from '@/components/appointments/AppointmentModal/Appoint
 import TaskModal from '@/components/tasks/TaskModal/TaskModal';
 import DayDetailsModal from '@/components/agenda/DayDetailsModal/DayDetailsModal';
 import LeadModal from '@/components/leads/LeadModal/LeadModal';
-import { appointmentService, leadService, taskService } from '@/services/api';
+import AppointmentDetailsModal from '@/components/appointments/AppointmentDetailsModal/AppointmentDetailsModal';
+import { appointmentService, leadService } from '@/services/api';
 import styles from './page.module.css';
 
 // ... (code)
@@ -38,6 +39,10 @@ export default function AgendaPage() {
     const [modalLoading, setModalLoading] = useState(false);
     const [showLeadModal, setShowLeadModal] = useState(false);
 
+    // Details Modal
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [selectedAppointment, setSelectedAppointment] = useState(null);
+
     // Day Details & Editing
     const [selectedDay, setSelectedDay] = useState(null);
     const [showDayModal, setShowDayModal] = useState(false);
@@ -51,33 +56,15 @@ export default function AgendaPage() {
     const loadData = async () => {
         setLoading(true);
         try {
-            const [fetchedAppointments, fetchedLeads, fetchedTasks] = await Promise.all([
-                appointmentService.getAll(), // Get ALL appointments, no date filter
+            const [fetchedAppointments, fetchedLeads] = await Promise.all([
+                appointmentService.getAll(),
                 leadService.getAll(),
-                taskService.getAll() // Fetch assignments
             ]);
 
-            // Process tasks to match appointment structure for calendar
-            const taskEvents = fetchedTasks
-                .filter(t => t.due_date && t.status !== 'done') // Only show pending/todo tasks with date
-                .map(t => ({
-                    id: `task-${t.id}`, // Avoid ID collision
-                    original_id: t.id,
-                    type: 'TASK',
-                    status: t.status,
-                    date_time: t.due_date, // Map due_date to date_time
-                    lead: t.lead,
-                    title: t.title
-                }));
-
-            // If API returns all appointments, filtering might happen in backend or frontend.
-            // Assuming getAll returns list.
-            setAppointments([...fetchedAppointments, ...taskEvents]);
-            setLeads(fetchedLeads);
+            setAppointments(fetchedAppointments || []);
+            setLeads(fetchedLeads || []);
         } catch (error) {
             console.error("Error loading agenda data:", error);
-            // Fallback for demo if API fails
-            // setAppointments(DEMO_APPOINTMENTS);
         } finally {
             setLoading(false);
         }
@@ -86,22 +73,20 @@ export default function AgendaPage() {
     const handleCreateAppointment = async (data) => {
         setModalLoading(true);
         try {
-            const newApt = await appointmentService.create(data);
-            setAppointments(prev => [...prev, newApt]);
+            if (editingAppointment) {
+                const updated = await appointmentService.update(editingAppointment.id, data);
+                setAppointments(prev => prev.map(a => a.id === updated.id ? updated : a));
+                setEditingAppointment(null);
+            } else {
+                const newApt = await appointmentService.create(data);
+                setAppointments(prev => [...prev, newApt]);
+            }
+            setShowModal(false);
         } catch (error) {
-            console.error(error);
-            // Fallback for demo
-            const newApt = {
-                id: Date.now(),
-                ...data,
-                date_time: data.date_time,
-                lead: leads.find(l => l.id === data.lead_id),
-                status: 'scheduled',
-            };
-            setAppointments(prev => [...prev, newApt]);
+            console.error("Error saving appointment:", error);
+            alert("Erro ao salvar agendamento.");
         } finally {
             setModalLoading(false);
-            setShowModal(false);
         }
     };
 
@@ -129,15 +114,39 @@ export default function AgendaPage() {
     };
 
     const handleEventClick = (event) => {
-        setShowDayModal(false); // Close day view
+        if (event.type === 'TASK') return; // Ignore tasks if any
 
-        if (event.type === 'TASK') {
-            // Navigate to Tasks page
-            router.push('/tasks');
-        } else {
-            // Navigate to Kanban page (Appointments live on Lead Cards)
-            router.push('/kanban');
+        setSelectedAppointment(event);
+        setShowDetailsModal(true);
+        // Optional: Keep day modal open or close it. Closing feels more drill-down.
+        // setShowDayModal(false); 
+        // Actually, user might want to go back to day view easily. 
+        // But Details Modal usually overlays everything.
+    };
+
+    const handleDeleteAppointment = async (apt) => {
+        if (!confirm('Tem certeza que deseja excluir este agendamento?')) return;
+
+        try {
+            // Assuming appointmentService has delete method
+            await appointmentService.delete(apt.id);
+            setAppointments(prev => prev.filter(a => a.id !== apt.id));
+            setShowDetailsModal(false);
+            setSelectedAppointment(null);
+
+            // Also close day modal if open, to force refresh if needed or just keep UI clean
+            setShowDayModal(false);
+        } catch (error) {
+            console.error("Error deleting appointment:", error);
+            alert("Erro ao excluir agendamento.");
         }
+    };
+
+    const handleEditFromDetails = (apt) => {
+        setShowDetailsModal(false);
+        setEditingAppointment(apt);
+        setShowModal(true);
+        setShowDayModal(false);
     };
 
     const monthDays = useMemo(() => {
@@ -450,6 +459,15 @@ export default function AgendaPage() {
                 date={selectedDay}
                 events={selectedDay ? getAppointmentsForDay(selectedDay) : []}
                 onItemClick={handleEventClick}
+            />
+
+            {/* Appointment Details Modal */}
+            <AppointmentDetailsModal
+                isOpen={showDetailsModal}
+                onClose={() => setShowDetailsModal(false)}
+                appointment={selectedAppointment}
+                onEdit={handleEditFromDetails}
+                onDelete={handleDeleteAppointment}
             />
 
             {/* Lead Modal for Creating New Lead */}
