@@ -59,7 +59,7 @@ export function NotificationProvider({ children }) {
         loadCounts();
     }, []);
 
-    // SLA Polling
+    // SLA Polling - DISABLED (cliente reclamou dos modais)
     const checkSlaAlerts = useCallback(async () => {
         if (!authService.isAuthenticated()) return;
 
@@ -68,24 +68,11 @@ export function NotificationProvider({ children }) {
             setSlaLeads(overdueLeads);
             setCounts(prev => ({ ...prev, alerts: overdueLeads.length }));
 
-            // Show alert for new SLA violations
+            // SLA alerts desabilitados - apenas log no console
             for (const lead of overdueLeads) {
                 if (!seenSlaLeads.has(lead.id)) {
-                    showAlert({
-                        type: 'sla',
-                        title: '⚠️ Alerta de SLA',
-                        message: `O lead "${lead.name}" está parado há ${lead.days_overdue} dias sem interação. Ação necessária!`,
-                        primaryLabel: 'Ver Lead',
-                        primaryAction: () => {
-                            window.location.href = `/kanban?lead=${lead.id}`;
-                            closeAlert();
-                        },
-                        secondaryLabel: 'Depois',
-                        secondaryAction: () => closeAlert(),
-                        persistent: true,
-                    });
+                    console.log(`[SLA] Lead ${lead.name} está parado há ${lead.days_overdue} dias`);
                     setSeenSlaLeads(prev => new Set([...prev, lead.id]));
-                    break; // Show one at a time
                 }
             }
         } catch (e) {
@@ -126,25 +113,15 @@ export function NotificationProvider({ children }) {
             }
         });
 
-        // Listen for new leads
+        // Listen for new leads - APENAS LOG, SEM MODAL
         socket.on('new_lead', (data) => {
             addNotification({
                 type: 'lead',
                 title: 'Novo Lead',
                 message: `${data.name} chegou via ${data.source === 'meta_ads' ? 'Meta Ads' : data.source === 'whatsapp' ? 'WhatsApp' : 'entrada manual'}`
             });
-            showAlert({
-                type: 'newLead',
-                title: '🔔 Novo Lead!',
-                message: `${data.name} acabou de entrar via ${data.source === 'meta_ads' ? 'Meta Ads' : data.source === 'whatsapp' ? 'WhatsApp' : 'entrada manual'}. Clique para ver no Kanban.`,
-                primaryLabel: 'Ver Lead',
-                primaryAction: () => {
-                    window.location.href = '/kanban';
-                    closeAlert();
-                },
-                secondaryLabel: 'OK',
-                secondaryAction: () => closeAlert(),
-            });
+            console.log(`[Notify] Novo lead: ${data.name}`);
+            // Modal desabilitado a pedido do cliente
         });
 
         // Listen for follow-up reminders
@@ -154,18 +131,8 @@ export function NotificationProvider({ children }) {
                 title: 'Tarefa Pendente',
                 message: `"${data.title}" para ${data.lead_name}`
             });
-            showAlert({
-                type: 'followup',
-                title: '⏰ Hora do Follow-up!',
-                message: `Você tem uma tarefa agendada: "${data.title}" para o lead ${data.lead_name}.`,
-                primaryLabel: 'Ver Tarefa',
-                primaryAction: () => {
-                    window.location.href = '/tasks';
-                    closeAlert();
-                },
-                secondaryLabel: 'Depois',
-                secondaryAction: () => closeAlert(),
-            });
+            console.log(`[Notify] Follow-up: ${data.title} para ${data.lead_name}`);
+            // Modal desabilitado a pedido do cliente
         });
 
         // Listen for AI responses
