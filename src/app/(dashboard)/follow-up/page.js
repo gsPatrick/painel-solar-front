@@ -17,7 +17,9 @@ import {
     Trash2,
     Plus,
     ChevronDown,
-    ChevronUp
+
+    ChevronUp,
+    History
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import { systemSettingsService, followupService, leadService, pipelineService } from '@/services/api';
@@ -41,6 +43,7 @@ export default function FollowUpPage() {
     // Leads state
     const [pendingLeads, setPendingLeads] = useState([]);
     const [approvalLeads, setApprovalLeads] = useState([]);
+    const [history, setHistory] = useState([]); // New History State
     const [loadingLeads, setLoadingLeads] = useState(false);
 
     // Rules state
@@ -99,12 +102,14 @@ export default function FollowUpPage() {
     const loadLeads = async () => {
         setLoadingLeads(true);
         try {
-            const [pending, approval] = await Promise.all([
+            const [pending, approval, historyData] = await Promise.all([
                 followupService.getPending(),
                 followupService.getApproval(),
+                followupService.getHistory() // Fetch History
             ]);
             setPendingLeads(pending || []);
             setApprovalLeads(approval || []);
+            setHistory(historyData || []);
         } catch (err) {
             console.error('Error loading leads:', err);
         } finally {
@@ -144,6 +149,23 @@ export default function FollowUpPage() {
         }
         return r.pipeline_id === entradaPipelineId;
     });
+
+    // Filter leads by current tab
+    const filterLeadsByTab = (leadsList) => {
+        return leadsList.filter(l => {
+            if (showPropostaRules) {
+                return l.pipeline_id === propostaPipelineId;
+            }
+            // Match Entrada ID or fallback to "not Proposta" if strictly binary? 
+            // Better to match Entrada EXACTLY to avoid confusing other pipelines.
+            // But valid leads might be in "Qualificação".
+            // For now, match entradaPipelineId exactly.
+            return l.pipeline_id === entradaPipelineId;
+        });
+    };
+
+    const filteredPendingLeads = filterLeadsByTab(pendingLeads);
+    const filteredApprovalLeads = filterLeadsByTab(approvalLeads);
 
     // Format delay for display
     const formatDelay = (hours) => {
@@ -611,17 +633,17 @@ export default function FollowUpPage() {
                         <div className={styles.cardHeader}>
                             <Clock size={20} />
                             <h2>Leads Aguardando Follow-up</h2>
-                            <span className={styles.badge}>{pendingLeads.length}</span>
+                            <span className={styles.badge}>{filteredPendingLeads.length}</span>
                         </div>
 
-                        {pendingLeads.length === 0 ? (
+                        {filteredPendingLeads.length === 0 ? (
                             <div className={styles.emptyState}>
                                 <CheckCircle size={32} />
                                 <p>Nenhum lead aguardando follow-up</p>
                             </div>
                         ) : (
                             <div className={styles.leadsList}>
-                                {pendingLeads.map((lead) => (
+                                {filteredPendingLeads.map((lead) => (
                                     <div key={lead.id} className={styles.leadItem}>
                                         <div className={styles.leadInfo}>
                                             <span className={styles.leadName}>{lead.name}</span>
@@ -671,20 +693,20 @@ export default function FollowUpPage() {
                         <div className={styles.cardHeader}>
                             <Pause size={20} />
                             <h2>Aguardando Aprovação</h2>
-                            <span className={`${styles.badge} ${styles.badgeWarning}`}>{approvalLeads.length}</span>
+                            <span className={`${styles.badge} ${styles.badgeWarning}`}>{filteredApprovalLeads.length}</span>
                         </div>
                         <p className={styles.cardDescription}>
                             Leads com IA pausada que precisam de follow-up.
                         </p>
 
-                        {approvalLeads.length === 0 ? (
+                        {filteredApprovalLeads.length === 0 ? (
                             <div className={styles.emptyState}>
                                 <CheckCircle size={32} />
-                                <p>Nenhum lead aguardando aprovação</p>
+                                <p>Nenhum lead aguardando aprovação nesta etapa</p>
                             </div>
                         ) : (
                             <div className={styles.leadsList}>
-                                {approvalLeads.map((lead) => (
+                                {filteredApprovalLeads.map((lead) => (
                                     <div key={lead.id} className={`${styles.leadItem} ${styles.leadItemWarning}`}>
                                         <div className={styles.leadInfo}>
                                             <span className={styles.leadName}>{lead.name}</span>
@@ -692,6 +714,21 @@ export default function FollowUpPage() {
                                             <span className={styles.leadStatus}>
                                                 IA: {lead.ai_status}
                                             </span>
+                                            {lead.pipeline && (
+                                                <span style={{
+                                                    display: 'inline-block',
+                                                    padding: '2px 6px',
+                                                    background: '#fff7ed',
+                                                    borderRadius: '4px',
+                                                    fontSize: '0.75rem',
+                                                    color: '#c2410c',
+                                                    marginTop: '4px',
+                                                    width: 'fit-content',
+                                                    border: '1px solid #fed7aa'
+                                                }}>
+                                                    {lead.pipeline.title}
+                                                </span>
+                                            )}
                                         </div>
                                         <div className={styles.leadActions}>
                                             <button
@@ -704,6 +741,66 @@ export default function FollowUpPage() {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+                    </motion.div>
+                    <motion.div
+                        className={styles.leadsCard}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        style={{ gridColumn: '1 / -1', marginTop: '2rem' }}
+                    >
+                        <div className={styles.cardHeader}>
+                            <History size={20} />
+                            <h2>Histórico de Disparos Recentes</h2>
+                            <span className={styles.badge}>{history.length}</span>
+                        </div>
+
+                        {history.length === 0 ? (
+                            <div className={styles.emptyState}>
+                                <p>Nenhum disparo registrado ainda.</p>
+                            </div>
+                        ) : (
+                            <div className={styles.listContainer} style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                <table className={styles.table} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead>
+                                        <tr style={{ textAlign: 'left', borderBottom: '1px solid #eee' }}>
+                                            <th style={{ padding: '8px' }}>Lead</th>
+                                            <th style={{ padding: '8px' }}>Mensagem</th>
+                                            <th style={{ padding: '8px' }}>Horário</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {history.map(msg => (
+                                            <tr key={msg.id} style={{ borderBottom: '1px solid #f9f9f9', fontSize: '0.9rem' }}>
+                                                <td style={{ padding: '12px 8px' }}>
+                                                    <strong>{msg.lead ? msg.lead.name : 'Desconhecido'}</strong>
+                                                    <div style={{ fontSize: '0.8rem', color: '#666' }}>{msg.lead?.phone}</div>
+                                                    {msg.lead?.pipeline && (
+                                                        <span style={{
+                                                            display: 'inline-block',
+                                                            fontSize: '0.7rem',
+                                                            padding: '1px 5px',
+                                                            borderRadius: '4px',
+                                                            backgroundColor: '#e2e8f0',
+                                                            color: '#475569',
+                                                            marginTop: '2px'
+                                                        }}>
+                                                            {msg.lead.pipeline.title}
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td style={{ padding: '12px 8px', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {msg.content}
+                                                </td>
+                                                <td style={{ padding: '12px 8px', color: '#666' }}>
+                                                    {new Date(msg.timestamp).toLocaleString('pt-BR')}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         )}
                     </motion.div>

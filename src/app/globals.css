@@ -1,24 +1,25 @@
 :root {
-  --background: #0f0f14;
-  --foreground: #ffffff;
+  /* Enforce Light Mode Variables */
+  --background: #f5f5f7;
+  --foreground: #1a1a1a;
 
-  /* Theme colors */
+  /* Theme colors - Kept as is, assuming they work for light mode (primary usually does) */
   --primary: #4318FF;
   --primary-hover: #5a2dff;
   --secondary: #6366f1;
 
-  /* Text colors */
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.6);
-  --text-muted: rgba(255, 255, 255, 0.4);
+  /* Text colors - Light Mode */
+  --text-primary: #1a1a1a;
+  --text-secondary: rgba(0, 0, 0, 0.6);
+  --text-muted: rgba(0, 0, 0, 0.4);
 
-  /* Background colors */
-  --card-bg: rgba(255, 255, 255, 0.03);
-  --input-bg: rgba(255, 255, 255, 0.05);
-  --hover-bg: rgba(255, 255, 255, 0.08);
+  /* Background colors - Light Mode */
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --hover-bg: rgba(0, 0, 0, 0.05);
 
-  /* Border colors */
-  --border-color: rgba(255, 255, 255, 0.1);
+  /* Border colors - Light Mode */
+  --border-color: rgba(0, 0, 0, 0.1);
   --border-focus: var(--primary);
 
   /* Status colors */
@@ -26,23 +27,6 @@
   --warning: #F59E0B;
   --danger: #EF4444;
   --info: #3B82F6;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --background: #f5f5f7;
-    --foreground: #1a1a1a;
-
-    --text-primary: #1a1a1a;
-    --text-secondary: rgba(0, 0, 0, 0.6);
-    --text-muted: rgba(0, 0, 0, 0.4);
-
-    --card-bg: #ffffff;
-    --input-bg: #ffffff;
-    --hover-bg: rgba(0, 0, 0, 0.05);
-
-    --border-color: rgba(0, 0, 0, 0.1);
-  }
 }
 
 html,
@@ -68,10 +52,4 @@ body {
 a {
   color: inherit;
   text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
 }

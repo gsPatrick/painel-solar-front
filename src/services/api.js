@@ -576,6 +576,11 @@ export const followupService = {
         const response = await api.put(`/followup/rules/${id}`, ruleData);
         return response.data;
     },
+
+    async getHistory() {
+        const response = await api.get('/followup/history');
+        return response.data;
+    },
 };
 
 // Marketing / Bulk Messages
