@@ -629,6 +629,20 @@ export default function FollowUpPage() {
                                             <span className={styles.leadDate}>
                                                 Última interação: {formatDate(lead.last_interaction_at)}
                                             </span>
+                                            {lead.pipeline && (
+                                                <span style={{
+                                                    display: 'inline-block',
+                                                    padding: '2px 6px',
+                                                    background: '#f1f5f9',
+                                                    borderRadius: '4px',
+                                                    fontSize: '0.75rem',
+                                                    color: '#64748b',
+                                                    marginTop: '4px',
+                                                    width: 'fit-content'
+                                                }}>
+                                                    {lead.pipeline.title}
+                                                </span>
+                                            )}
                                         </div>
                                         <div className={styles.leadActions}>
                                             <span className={styles.followupCount}>
