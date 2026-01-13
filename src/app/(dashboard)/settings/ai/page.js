@@ -24,6 +24,7 @@ export default function AISettingsPage() {
 
     // Settings state
     const [prompt, setPrompt] = useState('');
+    const [dataRecoveryPrompt, setDataRecoveryPrompt] = useState('');
     const [followupDelayHours, setFollowupDelayHours] = useState(24);
     const [messageDelaySeconds, setMessageDelaySeconds] = useState(3);
     const [followupMessage, setFollowupMessage] = useState('');
@@ -40,6 +41,9 @@ export default function AISettingsPage() {
 
             if (settings.openai_system_prompt) {
                 setPrompt(settings.openai_system_prompt.value || '');
+            }
+            if (settings.openai_data_recovery_prompt) {
+                setDataRecoveryPrompt(settings.openai_data_recovery_prompt.value || '');
             }
             if (settings.followup_delay_hours) {
                 setFollowupDelayHours(settings.followup_delay_hours.value || 24);
@@ -66,6 +70,7 @@ export default function AISettingsPage() {
         try {
             await systemSettingsService.bulkUpdate({
                 openai_system_prompt: prompt,
+                openai_data_recovery_prompt: dataRecoveryPrompt,
                 followup_delay_hours: String(followupDelayHours),
                 message_delay_seconds: String(messageDelaySeconds),
                 followup_message: followupMessage,
@@ -157,6 +162,33 @@ export default function AISettingsPage() {
                         />
                         <div className={styles.charCount}>
                             {prompt.length} caracteres
+                        </div>
+                    </motion.div>
+
+                    {/* Script de Recuperação de Dados */}
+                    <motion.div
+                        className={styles.card}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15 }}
+                    >
+                        <div className={styles.cardHeader}>
+                            <AlertCircle size={20} />
+                            <h2>Script de Recuperação (Primeiro Contato)</h2>
+                        </div>
+                        <p className={styles.cardDescription}>
+                            Este script é ativado automaticamente quando o lead está na fase "Primeiro Contato"
+                            e ainda não informou dados essenciais (Conta de Luz ou Segmento).
+                        </p>
+                        <textarea
+                            className={styles.textarea}
+                            value={dataRecoveryPrompt}
+                            onChange={(e) => setDataRecoveryPrompt(e.target.value)}
+                            placeholder="Mensagem focada em recuperar dados..."
+                            rows={10}
+                        />
+                        <div className={styles.charCount}>
+                            {dataRecoveryPrompt.length} caracteres
                         </div>
                     </motion.div>
 

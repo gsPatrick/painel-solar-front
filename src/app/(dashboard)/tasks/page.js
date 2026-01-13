@@ -17,7 +17,7 @@ import {
 import Header from '@/components/layout/Header/Header';
 import TaskModal from '@/components/tasks/TaskModal/TaskModal';
 import LeadModal from '@/components/leads/LeadModal/LeadModal';
-import { taskService, leadService, appointmentService } from '@/services/api'; // Added appointmentService for integration if needed
+import { taskService, leadService, appointmentService } from '@/services/api';
 import styles from './page.module.css';
 
 export default function TasksPage() {
@@ -31,6 +31,10 @@ export default function TasksPage() {
     const [dateFilter, setDateFilter] = useState('all'); // 'all', 'today', 'tomorrow', 'overdue', 'week'
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 7;
+
     // Modals
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [showLeadModal, setShowLeadModal] = useState(false);
@@ -40,6 +44,11 @@ export default function TasksPage() {
     useEffect(() => {
         loadData();
     }, []);
+
+    // Reset pagination when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [statusFilter, dateFilter, searchQuery]);
 
     const loadData = async () => {
         setLoading(true);
@@ -149,6 +158,11 @@ export default function TasksPage() {
     };
 
     const filteredTasks = getFilteredTasks();
+    const totalPages = Math.ceil(filteredTasks.length / ITEMS_PER_PAGE);
+    const paginatedTasks = filteredTasks.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
 
     // --- Helper UI ---
 
@@ -250,9 +264,9 @@ export default function TasksPage() {
 
             {/* Task Grid */}
             <div className={styles.taskGrid}>
-                <AnimatePresence>
-                    {filteredTasks.length > 0 ? (
-                        filteredTasks.map(task => {
+                <AnimatePresence mode='wait'>
+                    {paginatedTasks.length > 0 ? (
+                        paginatedTasks.map(task => {
                             const late = isLate(task);
                             const statusClass = task.status === 'done' ? 'status-done' : late ? 'status-late' : 'status-pending';
                             const priorityClass = late ? 'priority-high' : 'priority-normal'; // Simplify priority logic to visual urgency
@@ -329,6 +343,29 @@ export default function TasksPage() {
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Pagination Controls */}
+            {filteredTasks.length > ITEMS_PER_PAGE && (
+                <div className={styles.pagination}>
+                    <button
+                        className={styles.pageBtn}
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                    >
+                        Anterior
+                    </button>
+                    <span className={styles.pageInfo}>
+                        Página {currentPage} de {totalPages}
+                    </span>
+                    <button
+                        className={styles.pageBtn}
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                    >
+                        Próxima
+                    </button>
+                </div>
+            )}
 
             {/* Task Modal */}
             <TaskModal

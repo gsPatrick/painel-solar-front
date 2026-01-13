@@ -18,7 +18,11 @@ import {
     Check,
     RefreshCw,
     Bell,
-    Shield
+
+
+
+    Shield,
+    Megaphone
 } from 'lucide-react';
 import { settingsService } from '@/services/api';
 import { useNotification } from '@/contexts/NotificationContext';
@@ -37,6 +41,7 @@ const navItems = [
         section: 'Gestão',
         items: [
             { href: '/leads', icon: Users, label: 'Leads', badge: null },
+            { href: '/marketing', icon: Megaphone, label: 'Disparos em Massa', badge: null },
             { href: '/tasks', icon: CheckSquare, label: 'Tarefas', badge: 5 },
             { href: '/messages', icon: MessageSquare, label: 'Modo Mensagem', isFullscreen: true },
         ],

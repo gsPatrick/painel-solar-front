@@ -578,4 +578,12 @@ export const followupService = {
     },
 };
 
+// Marketing / Bulk Messages
+export const marketingService = {
+    bulkSend: async (leadIds, content) => {
+        const response = await api.post('/messages/bulk', { lead_ids: leadIds, content });
+        return response.data;
+    },
+};
+
 export default api;

@@ -20,8 +20,10 @@ import {
     Edit2,
     Trash2,
     MapPin,
-    Wrench
+    Wrench,
+    MessageCircle
 } from 'lucide-react';
+import ChatModal from '@/components/chat/ChatModal/ChatModal';
 import Header from '@/components/layout/Header/Header';
 import KanbanBoard from '@/components/kanban/KanbanBoard/KanbanBoard';
 import LeadModal from '@/components/leads/LeadModal/LeadModal';
@@ -43,6 +45,7 @@ export default function KanbanPage() {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [showPipelineModal, setShowPipelineModal] = useState(false);
     const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+    const [showChatModal, setShowChatModal] = useState(false);
     const [editingLead, setEditingLead] = useState(null);
     const [editingPipeline, setEditingPipeline] = useState(null);
     const [deleteLead, setDeleteLead] = useState(null);
@@ -600,6 +603,14 @@ export default function KanbanPage() {
                                             <Edit2 size={16} />
                                             Editar Lead
                                         </button>
+                                        <button
+                                            className={`${styles.btn} ${styles.btnPrimary}`}
+                                            onClick={() => setShowChatModal(true)}
+                                            style={{ backgroundColor: '#00A884' }}
+                                        >
+                                            <MessageCircle size={16} />
+                                            Chat
+                                        </button>
                                     </div>
                                 </div>
                             </motion.div>
@@ -647,6 +658,13 @@ export default function KanbanPage() {
                     onSubmit={handleCreateAppointment}
                     leads={allLeads}
                     loading={modalLoading}
+                />
+
+                {/* Chat Modal */}
+                <ChatModal
+                    isOpen={showChatModal}
+                    onClose={() => setShowChatModal(false)}
+                    lead={selectedLead}
                 />
 
                 {/* Delete Lead Confirm */}
@@ -715,7 +733,7 @@ export default function KanbanPage() {
                         </div>
                     </div>
                 )}
-            </div>
+            </div >
         </>
     );
 }
