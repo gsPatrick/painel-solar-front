@@ -110,7 +110,8 @@ export default function KanbanPage() {
                 if (leadFound) {
                     return updated.map(p => {
                         if (p.id === updatedLead.pipeline_id) {
-                            return { ...p, leads: [...(p.leads || []), leadFound] };
+                            // Add to TOP of list (Newest First)
+                            return { ...p, leads: [leadFound, ...(p.leads || [])] };
                         }
                         return p;
                     });
@@ -139,7 +140,18 @@ export default function KanbanPage() {
         setLoading(true);
         try {
             const data = await pipelineService.getKanban();
-            setPipelines(data);
+
+            // FORCE SORT: Ensure leads are ordered by last_interaction_at DESC (Newest First)
+            const sortedData = data.map(p => ({
+                ...p,
+                leads: p.leads?.sort((a, b) => {
+                    const dateA = new Date(a.last_interaction_at || a.createdAt);
+                    const dateB = new Date(b.last_interaction_at || b.createdAt);
+                    return dateB - dateA;
+                }) || []
+            }));
+
+            setPipelines(sortedData);
         } catch (error) {
             console.error('Error fetching kanban data:', error);
         } finally {
