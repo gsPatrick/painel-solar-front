@@ -50,10 +50,7 @@ function SortableColumn({ pipeline, ...props }) {
 
     return (
         <div ref={setNodeRef} style={style} {...attributes}>
-            {/* Listeners applied to handle for drag */}
-            <div {...listeners} style={{ cursor: 'grab', height: '100%' }}>
-                <Column pipeline={pipeline} {...props} />
-            </div>
+            <Column pipeline={pipeline} dragHandleProps={listeners} {...props} />
         </div>
     );
 }
@@ -144,7 +141,10 @@ export default function KanbanBoard({
         if (!activePipeline || !overPipeline) return;
         if (activePipeline.id === overPipeline.id) return;
 
-        // Move lead to new pipeline
+        // User requested "Always go to top" behavior for cross-column moves
+        // regardless of drop position.
+
+        // Move lead to new pipeline at index 0
         onLeadMove?.(activeId, overPipeline.id, 0);
     }, [findPipelineByLeadId, onLeadMove]);
 

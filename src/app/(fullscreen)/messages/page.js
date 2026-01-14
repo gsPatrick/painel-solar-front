@@ -95,10 +95,44 @@ export default function MessagesPage() {
             console.log('[Socket] Connected');
         });
 
+        // Handle New Lead (Real-time Kanban + Sidebar)
+        socketRef.current.on('new_lead', (newLead) => {
+            // Update Kanban (Prepend to correct pipeline)
+            setPipelines(prev => prev.map(p => {
+                if (p.id === newLead.pipeline_id) {
+                    return { ...p, leads: [newLead, ...(p.leads || [])] };
+                }
+                return p;
+            }));
+
+            // Update Sidebar (Add to list)
+            setLeads(prev => {
+                if (prev.find(l => l.id === newLead.id)) return prev;
+                return [newLead, ...prev];
+            });
+        });
+
+        // Handle Messages (Chat + Sidebar Reorder)
         socketRef.current.on('receive_message', (data) => {
-            if (selectedLead && data.lead_id === selectedLead.id) {
-                setMessages(prev => [...prev, data]);
+            // Update active chat
+            if (window.selectedLeadId === data.lead_id) { // Use ref or window var if state is stale in closure? 
+                // Creating a simplified solution using setMessages with functional update which is safe
+                setMessages(prev => {
+                    // Check if message already exists (optimistic)
+                    if (prev.some(m => m.id === data.id || (m.id && m.id.startsWith('temp') && m.content === data.content))) {
+                        return prev;
+                    }
+                    return [...prev, data];
+                });
             }
+
+            // Update Sidebar Ordering (Last Interaction)
+            setLeads(prev => prev.map(l => {
+                if (l.id === data.lead_id) {
+                    return { ...l, last_interaction_at: data.timestamp };
+                }
+                return l;
+            }));
         });
 
         return () => {
@@ -106,6 +140,20 @@ export default function MessagesPage() {
                 socketRef.current.disconnect();
             }
         };
+    }, []); // Empty dependency array - using functional state updates
+
+    // Separate effect for joining rooms to avoid reconnecting socket
+    useEffect(() => {
+        if (selectedLead && socketRef.current) {
+            socketRef.current.emit('join_chat', { room: `lead_${selectedLead.id}` });
+            // Store selectedLeadId globally or in ref for the socket closure? 
+            // Actually, the closure of useEffect above is empty deps [].
+            // So `selectedLead` inside `receive_message` would be stale (null).
+            // FIX: Use a Ref to track selectedLeadId.
+            window.selectedLeadId = selectedLead.id;
+        } else {
+            window.selectedLeadId = null;
+        }
     }, [selectedLead]);
 
     // Join chat room when lead is selected

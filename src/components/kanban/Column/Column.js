@@ -17,6 +17,7 @@ export default function Column({
     onDeleteColumn,
     onRecoveryAction,
     loading = false,
+    dragHandleProps, // Receive drag listeners from parent
 }) {
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef(null);
@@ -81,13 +82,23 @@ export default function Column({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
         >
-            <div className={styles.header}>
+            {/* Apply drag listeners to Header only */}
+            <div
+                className={styles.header}
+                {...dragHandleProps}
+                style={{ cursor: 'grab', touchAction: 'none' }}
+            >
                 <div className={styles.titleWrapper}>
                     <span className={styles.colorDot} />
                     <span className={styles.title}>{pipeline.title}</span>
                     <span className={styles.count}>{leads.length}</span>
                 </div>
-                <div className={styles.actions} ref={menuRef}>
+                <div
+                    className={styles.actions}
+                    ref={menuRef}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                >
                     <button className={styles.actionBtn} onClick={() => onAddLead?.(pipeline)}>
                         <Plus size={16} />
                     </button>
@@ -160,4 +171,3 @@ export default function Column({
         </motion.div>
     );
 }
-
