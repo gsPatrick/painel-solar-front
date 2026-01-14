@@ -99,21 +99,53 @@ export default function FollowupSettingsPage() {
     };
 
     const getDelayLabel = (hours) => {
-        if (hours < 24) return `${hours} hora${hours > 1 ? 's' : ''}`;
-        const days = hours / 24;
+        if (hours < 1) {
+            const minutes = Math.round(hours * 60);
+            return `${minutes} minuto${minutes > 1 ? 's' : ''}`;
+        }
+        if (hours < 24) {
+            // Handle 1.5 hours, etc.
+            if (Number.isInteger(hours)) {
+                return `${hours} hora${hours > 1 ? 's' : ''}`;
+            } else {
+                return `${hours} horas`;
+            }
+        }
+        const days = Math.round(hours / 24); // Round to nearest day for label
         return `${days} dia${days > 1 ? 's' : ''}`;
     };
 
-    const handleToggle = (type, index) => {
-        if (type === 'entrada') {
-            setEntradaRules(prev => prev.map((r, i) =>
-                i === index ? { ...r, active: !r.active } : r
-            ));
-        } else {
-            setPropostaRules(prev => prev.map((r, i) =>
-                i === index ? { ...r, active: !r.active } : r
-            ));
+    const handleDelayChange = (type, index, value) => {
+        const updater = prev => prev.map((r, i) =>
+            i === index ? { ...r, delay: parseFloat(value), label: getDelayLabel(parseFloat(value)) } : r
+        );
+        if (type === 'entrada') setEntradaRules(updater);
+        else setPropostaRules(updater);
+    };
+
+    const handleUnitChange = (type, index, unit, value) => {
+        // unit: 'hours' or 'minutes'
+        // value: current input value (e.g. 30)
+        let newDelayInHours = parseFloat(value);
+        if (unit === 'minutes') {
+            newDelayInHours = newDelayInHours / 60;
+            hours = val / 60;
+        } else if (unit === 'days') {
+            hours = val * 24;
         }
+
+        const updater = prev => prev.map((r, i) =>
+            i === index ? {
+                ...r,
+                delay: hours,
+                unit: unit,
+                displayValue: value,
+                label: getDelayLabel(hours)
+            } : r
+        );
+
+        if (type === 'entrada') setEntradaRules(updater);
+        else setPropostaRules(updater);
     };
 
     const handleMessageChange = (type, index, value) => {
@@ -260,7 +292,26 @@ export default function FollowupSettingsPage() {
                                 <div className={styles.ruleInfo}>
                                     <Clock size={16} />
                                     <span className={styles.ruleStep}>Mensagem {rule.step}</span>
-                                    <span className={styles.ruleDelay}>após {rule.label}</span>
+                                    <div className={styles.delayInputGroup}>
+                                        <span>após</span>
+                                        <input
+                                            type="number"
+                                            className={styles.delayInput}
+                                            value={rule.displayValue || (rule.delay < 1 ? Math.round(rule.delay * 60) : rule.delay)}
+                                            onChange={(e) => handleUnitChange(type, index, rule.unit || (rule.delay < 1 ? 'minutes' : 'hours'), e.target.value)}
+                                            disabled={!rule.active}
+                                        />
+                                        <select
+                                            className={styles.unitSelect}
+                                            value={rule.unit || (rule.delay < 1 ? 'minutes' : 'hours')}
+                                            onChange={(e) => handleUnitChange(type, index, e.target.value, rule.displayValue || (rule.delay < 1 ? Math.round(rule.delay * 60) : rule.delay))}
+                                            disabled={!rule.active}
+                                        >
+                                            <option value="minutes">Minutos</option>
+                                            <option value="hours">Horas</option>
+                                            <option value="days">Dias</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <button
                                     className={`${styles.toggleBtn} ${rule.active ? styles.active : ''}`}
