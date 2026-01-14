@@ -23,6 +23,7 @@ export default function TaskModal({
     const [formData, setFormData] = useState({
         lead_id: '',
         title: '',
+        description: '',
         type: 'FOLLOW_UP',
         due_date: '',
     });
@@ -35,6 +36,7 @@ export default function TaskModal({
             setFormData({
                 lead_id: task.lead_id || '',
                 title: task.title || '',
+                description: task.description || '',
                 type: task.type || 'FOLLOW_UP',
                 due_date: dueDate.toISOString().split('T')[0],
             });
@@ -44,6 +46,7 @@ export default function TaskModal({
             setFormData({
                 lead_id: leads[0]?.id || '',
                 title: '',
+                description: '',
                 type: 'FOLLOW_UP',
                 due_date: tomorrow.toISOString().split('T')[0],
             });
@@ -64,7 +67,7 @@ export default function TaskModal({
 
     const validate = () => {
         const newErrors = {};
-        if (!formData.lead_id) newErrors.lead_id = 'Selecione um lead';
+        // Lead is now optional
         if (!formData.title.trim()) newErrors.title = 'Título é obrigatório';
         if (!formData.due_date) newErrors.due_date = 'Data é obrigatória';
         setErrors(newErrors);
@@ -76,8 +79,9 @@ export default function TaskModal({
         if (!validate()) return;
 
         const data = {
-            lead_id: formData.lead_id,
+            lead_id: formData.lead_id || null,
             title: formData.title,
+            description: formData.description,
             type: formData.type,
             due_date: new Date(formData.due_date).toISOString(),
         };
@@ -89,10 +93,10 @@ export default function TaskModal({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={isEditing ? 'Editar Tarefa' : 'Nova Tarefa'}
-            subtitle={isEditing ? 'Altere os dados da tarefa' : 'Crie uma nova tarefa de acompanhamento'}
+            title={isEditing ? 'Editar Lembrete' : 'Novo Lembrete'}
+            subtitle={isEditing ? 'Altere os dados do lembrete' : 'Crie um novo lembrete ou tarefa'}
             icon={CheckSquare}
-            iconVariant="warning"
+            iconVariant="primary"
             size="md"
             footer={
                 <>
@@ -110,28 +114,12 @@ export default function TaskModal({
                         className={`${styles.btn} ${styles.btnPrimary}`}
                         disabled={loading}
                     >
-                        {loading ? <span className={styles.spinner} /> : isEditing ? 'Salvar' : 'Criar Tarefa'}
+                        {loading ? <span className={styles.spinner} /> : isEditing ? 'Salvar' : 'Criar Lembrete'}
                     </button>
                 </>
             }
         >
             <form id="task-form" onSubmit={handleSubmit} className={styles.formGrid}>
-                <div className={styles.formGroup}>
-                    <label className={styles.label}>Lead</label>
-                    <select
-                        name="lead_id"
-                        value={formData.lead_id}
-                        onChange={handleChange}
-                        className={`${styles.select} ${errors.lead_id ? styles.inputError : ''}`}
-                    >
-                        <option value="">Selecione um lead...</option>
-                        {leads.map((l) => (
-                            <option key={l.id} value={l.id}>{l.name}</option>
-                        ))}
-                    </select>
-                    {errors.lead_id && <span className={styles.errorText}>{errors.lead_id}</span>}
-                </div>
-
                 <div className={styles.formGroup}>
                     <label className={styles.label}>Título</label>
                     <input
@@ -140,9 +128,48 @@ export default function TaskModal({
                         value={formData.title}
                         onChange={handleChange}
                         className={`${styles.input} ${errors.title ? styles.inputError : ''}`}
-                        placeholder="Ex: Enviar proposta comercial"
+                        placeholder="Ex: Ligar para cliente amanhã"
                     />
                     {errors.title && <span className={styles.errorText}>{errors.title}</span>}
+                </div>
+
+                <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+                    <label className={styles.label}>Descrição (Opcional)</label>
+                    <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        className={styles.textarea}
+                        rows={3}
+                        placeholder="Detalhes adicionais..."
+                    />
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>Vincular Lead (Opcional)</label>
+                    <select
+                        name="lead_id"
+                        value={formData.lead_id}
+                        onChange={handleChange}
+                        className={styles.select}
+                    >
+                        <option value="">-- Nenhum --</option>
+                        {leads.map((l) => (
+                            <option key={l.id} value={l.id}>{l.name}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>Data</label>
+                    <input
+                        type="date"
+                        name="due_date"
+                        value={formData.due_date}
+                        onChange={handleChange}
+                        className={`${styles.input} ${errors.due_date ? styles.inputError : ''}`}
+                    />
+                    {errors.due_date && <span className={styles.errorText}>{errors.due_date}</span>}
                 </div>
 
                 <div className={styles.formGroup}>
@@ -157,18 +184,6 @@ export default function TaskModal({
                             <option key={t.value} value={t.value}>{t.label}</option>
                         ))}
                     </select>
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label className={styles.label}>Data de Vencimento</label>
-                    <input
-                        type="date"
-                        name="due_date"
-                        value={formData.due_date}
-                        onChange={handleChange}
-                        className={`${styles.input} ${errors.due_date ? styles.inputError : ''}`}
-                    />
-                    {errors.due_date && <span className={styles.errorText}>{errors.due_date}</span>}
                 </div>
             </form>
         </Modal>
