@@ -182,7 +182,7 @@ export default function TasksPage() {
 
     return (
         <>
-            <Header title="Minhas Tarefas" />
+            <Header title="Dashboard de Lembretes" />
             <div className={styles.container}>
                 {/* Actions Toolbar */}
                 <div className={styles.header}>
@@ -198,7 +198,7 @@ export default function TasksPage() {
                         }}
                     >
                         <Plus size={20} />
-                        Nova Tarefa
+                        Novo Lembrete
                     </button>
                 </div>
 
