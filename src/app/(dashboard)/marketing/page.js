@@ -284,21 +284,21 @@ export default function MarketingPage() {
                                     onClick={() => setDelayPreset('fast')}
                                     title="5-10 segundos"
                                 >
-                                    ⚡ Rápido
+                                    ⚡ Rápido (5-10s)
                                 </button>
                                 <button
                                     className={`${styles.presetBtn} ${delayPreset === 'recommended' ? styles.active : ''} ${styles.safe}`}
                                     onClick={() => setDelayPreset('recommended')}
                                     title="15-30 segundos"
                                 >
-                                    🛡️ Seguro
+                                    🛡️ Seguro (15-30s)
                                 </button>
                                 <button
                                     className={`${styles.presetBtn} ${delayPreset === 'slow' ? styles.active : ''} ${styles.safer}`}
                                     onClick={() => setDelayPreset('slow')}
                                     title="30-60 segundos"
                                 >
-                                    🐢 Lento
+                                    🐢 Lento (30-60s)
                                 </button>
                             </div>
 
