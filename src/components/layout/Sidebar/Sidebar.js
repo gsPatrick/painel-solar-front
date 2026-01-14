@@ -85,7 +85,7 @@ export default function Sidebar() {
 
     // Map dynamic counts to nav items
     const getBadge = (label) => {
-        if (label === 'Tarefas') return counts.tasks > 0 ? counts.tasks : null;
+        if (label === 'Lembretes') return counts.tasks > 0 ? counts.tasks : null;
         if (label === 'Mensagens') return counts.messages > 0 ? counts.messages : null;
         return null;
     };
