@@ -50,7 +50,7 @@ export default function FollowupSettingsPage() {
                 p.title.toLowerCase().includes('primeiro contato')
             );
             const propostaPipeline = pipelinesData.find(p =>
-                p.title.toLowerCase().includes('proposta')
+                p.title.toLowerCase().includes('proposta enviada')
             );
 
             if (entradaPipeline) setEntradaPipelineId(entradaPipeline.id);
