@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Wrench, Bell } from 'lucide-react';
 import Modal, { modalStyles as styles } from '../../shared/Modal/Modal';
+import localStyles from './AppointmentModal.module.css';
 
 const TYPES = [
     { value: 'VISITA_TECNICA', label: 'Visita Técnica', icon: MapPin, color: '#3B82F6' },
@@ -118,6 +119,20 @@ export default function AppointmentModal({
         l.phone?.includes(leadSearch)
     );
 
+
+
+    // ... (inside component) ...
+
+    // Helper to determine style for type buttons based on selection
+    const getTypeBtnStyle = (tValue, currentType, color) => {
+        const isSelected = currentType === tValue;
+        return {
+            borderColor: isSelected ? color : undefined,
+            backgroundColor: isSelected ? `${color}10` : undefined,
+            color: isSelected ? color : undefined,
+        };
+    };
+
     return (
         <Modal
             isOpen={isOpen}
@@ -150,34 +165,19 @@ export default function AppointmentModal({
         >
             <form id="appointment-form" onSubmit={handleSubmit} className={`${styles.formGrid} ${styles.cols2}`}>
                 {conflictError && (
-                    <div className={`${styles.formGroup} ${styles.fullWidth}`} style={{
-                        padding: '14px 18px',
-                        background: 'rgba(239, 68, 68, 0.08)',
-                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                        borderRadius: '12px',
-                        color: '#DC2626',
-                        fontSize: '0.9rem',
-                    }}>
+                    <div className={`${styles.formGroup} ${styles.fullWidth} ${localStyles.conflictWarning}`}>
                         ⚠️ {conflictError}
                     </div>
                 )}
 
                 <div className={`${styles.formGroup} ${styles.fullWidth}`} style={{ position: 'relative' }}>
-                    <div className={styles.labelRow} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'center' }}>
-                        <label className={styles.label} style={{ margin: 0 }}>Lead</label>
+                    <div className={styles.labelRow}>
+                        <label className={styles.label}>Lead</label>
                         {onCreateLead && (
                             <button
                                 type="button"
                                 onClick={onCreateLead}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: '#4318FF',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 600,
-                                    cursor: 'pointer',
-                                    padding: 0,
-                                }}
+                                className={localStyles.newLeadBtn}
                             >
                                 + Novo Lead
                             </button>
@@ -192,11 +192,8 @@ export default function AppointmentModal({
                         onChange={(e) => {
                             setLeadSearch(e.target.value);
                             setShowDropdown(true);
-                            // Clear selection if typing (optional, or keep previous ID until new selection)
-                            // Better to clear ID if text doesn't match, but simple UX is keep typing filters list
                         }}
                         onFocus={() => setShowDropdown(true)}
-                        // Delay blur to allow click on dropdown item
                         onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                         className={`${styles.input} ${errors.lead_id ? styles.inputError : ''}`}
                         autoComplete="off"
@@ -204,23 +201,7 @@ export default function AppointmentModal({
 
                     {/* Dropdown List */}
                     {showDropdown && filteredLeads.length > 0 && (
-                        <ul style={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: 0,
-                            right: 0,
-                            maxHeight: '200px',
-                            overflowY: 'auto',
-                            background: 'white',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: '8px',
-                            zIndex: 1000,
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                            marginTop: '4px',
-                            listStyle: 'none',
-                            padding: 0,
-                            margin: 0
-                        }}>
+                        <ul className={localStyles.dropdownList}>
                             {filteredLeads.map((l) => (
                                 <li
                                     key={l.id}
@@ -230,19 +211,10 @@ export default function AppointmentModal({
                                         setShowDropdown(false);
                                         setErrors(prev => ({ ...prev, lead_id: null }));
                                     }}
-                                    style={{
-                                        padding: '10px 14px',
-                                        cursor: 'pointer',
-                                        borderBottom: '1px solid #f1f5f9',
-                                        fontSize: '0.9rem',
-                                        background: formData.lead_id === l.id ? '#f8fafc' : 'white',
-                                        color: '#1e293b'
-                                    }}
-                                    onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
-                                    onMouseLeave={(e) => e.currentTarget.style.background = formData.lead_id === l.id ? '#f8fafc' : 'white'}
+                                    className={`${localStyles.dropdownItem} ${formData.lead_id === l.id ? localStyles.selected : ''}`}
                                 >
                                     <strong>{l.name}</strong>
-                                    <span style={{ fontSize: '0.8rem', color: '#64748b', marginLeft: '8px' }}>{l.phone}</span>
+                                    <span className={localStyles.dropdownPhone}>{l.phone}</span>
                                 </li>
                             ))}
                         </ul>
@@ -253,34 +225,17 @@ export default function AppointmentModal({
 
                 <div className={`${styles.formGroup} ${styles.fullWidth}`}>
                     <label className={styles.label}>Tipo</label>
-                    <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                    <div className={localStyles.typeContainer}>
                         {TYPES.map((t) => {
                             const Icon = t.icon;
+                            const dynamicStyle = getTypeBtnStyle(t.value, formData.type, t.color);
                             return (
                                 <button
                                     key={t.value}
                                     type="button"
                                     onClick={() => setFormData((prev) => ({ ...prev, type: t.value }))}
-                                    style={{
-                                        flex: 1,
-                                        padding: '14px',
-                                        borderRadius: '12px',
-                                        border: formData.type === t.value
-                                            ? `2px solid ${t.color}`
-                                            : '2px solid #E2E8F0',
-                                        background: formData.type === t.value
-                                            ? `${t.color}10`
-                                            : '#FFFFFF',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s ease',
-                                        color: formData.type === t.value ? t.color : '#64748B',
-                                        fontWeight: 600,
-                                        fontSize: '0.9rem',
-                                    }}
+                                    className={localStyles.typeBtn}
+                                    style={dynamicStyle}
                                 >
                                     <Icon size={18} />
                                     {t.label}

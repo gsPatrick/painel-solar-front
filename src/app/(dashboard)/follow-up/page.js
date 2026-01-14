@@ -763,7 +763,8 @@ export default function FollowUpPage() {
                             </div>
                         ) : (
                             <div className={styles.listContainer} style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                                <table className={styles.table} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                {/* Desktop Table */}
+                                <table className={`${styles.table} ${styles.desktopTable}`} style={{ width: '100%', borderCollapse: 'collapse' }}>
                                     <thead>
                                         <tr style={{ textAlign: 'left', borderBottom: '1px solid #eee' }}>
                                             <th style={{ padding: '8px' }}>Lead</th>
@@ -801,6 +802,32 @@ export default function FollowUpPage() {
                                         ))}
                                     </tbody>
                                 </table>
+
+                                {/* Mobile Cards View */}
+                                <div className={styles.mobileHistory}>
+                                    {history.map(msg => (
+                                        <div key={msg.id} className={styles.historyCard}>
+                                            <div className={styles.historyHeader}>
+                                                <div>
+                                                    <div className={styles.historyLeadName}>{msg.lead ? msg.lead.name : 'Desconhecido'}</div>
+                                                    {msg.lead?.pipeline && (
+                                                        <span className={styles.historyPipeline}>
+                                                            {msg.lead.pipeline.title}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className={styles.historyTime}>
+                                                    {new Date(msg.timestamp).toLocaleString('pt-BR', {
+                                                        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                                                    })}
+                                                </span>
+                                            </div>
+                                            <div className={styles.historyMessage}>
+                                                {msg.content}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </motion.div>

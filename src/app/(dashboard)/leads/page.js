@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import LeadModal from '@/components/leads/LeadModal/LeadModal';
+import LeadDetailsModal from '@/components/leads/LeadDetailsModal/LeadDetailsModal';
 import ConfirmModal from '@/components/shared/ConfirmModal/ConfirmModal';
 import { leadService, pipelineService } from '@/services/api';
 import { useNotification } from '@/contexts/NotificationContext';
@@ -53,6 +54,7 @@ export default function LeadsPage() {
     const [yearFilter, setYearFilter] = useState(new Date().getFullYear());
     const [importantFilter, setImportantFilter] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [viewingLead, setViewingLead] = useState(null);
     const [editingLead, setEditingLead] = useState(null);
     const [deleteLead, setDeleteLead] = useState(null);
     const [blockLead, setBlockLead] = useState(null);
@@ -377,8 +379,10 @@ export default function LeadsPage() {
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
                                         className={lead.is_important ? styles.importantRow : ''}
+                                        onClick={() => setViewingLead(lead)}
+                                        style={{ cursor: 'pointer' }}
                                     >
-                                        <td>
+                                        <td data-label="Lead">
                                             <div className={styles.leadInfo}>
                                                 <div className={styles.leadAvatar}>{getInitials(lead.name)}</div>
                                                 <div>
@@ -390,13 +394,13 @@ export default function LeadsPage() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td data-label="Origem">
                                             <span className={`${styles.badge} ${styles[lead.source === 'meta_ads' ? 'meta' : lead.source]}`}>
                                                 {getSourceIcon(lead.source)}
                                                 {getSourceLabel(lead.source)}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td data-label="Campanha">
                                             {lead.source === 'meta_ads' && lead.meta_campaign_data?.campaign_name ? (
                                                 <div className={styles.campaignInfo}>
                                                     <span className={styles.campaignName}>
@@ -412,7 +416,7 @@ export default function LeadsPage() {
                                                 <span className={styles.noCampaign}>-</span>
                                             )}
                                         </td>
-                                        <td>
+                                        <td data-label="Pipeline">
                                             <span
                                                 className={styles.pipelineBadge}
                                                 style={{ background: lead.pipeline?.color || '#4318FF' }}
@@ -420,26 +424,57 @@ export default function LeadsPage() {
                                                 {lead.pipeline?.title || 'Novo Lead'}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td data-label="SLA">
                                             <div className={styles.slaIndicator}>
                                                 <span className={`${styles.slaDot} ${getSlaClass(lead.sla_status)}`} />
                                                 <span className={styles.slaText}>{getSlaLabel(lead.sla_status)}</span>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td data-label="Valor">
                                             <span className={`${styles.value} ${!lead.proposal_value ? styles.empty : ''}`}>
                                                 {formatCurrency(lead.proposal_value) || 'Sem proposta'}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td data-label="Ações">
                                             <div className={styles.rowActions}>
-                                                <button className={styles.actionBtn} onClick={() => setEditingLead(lead)} title="Editar">
+                                                <button
+                                                    className={styles.actionBtn}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setViewingLead(lead);
+                                                    }}
+                                                    title="Ver Detalhes"
+                                                >
+                                                    <Eye size={16} />
+                                                </button>
+                                                <button
+                                                    className={styles.actionBtn}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEditingLead(lead);
+                                                    }}
+                                                    title="Editar"
+                                                >
                                                     <Edit2 size={16} />
                                                 </button>
-                                                <button className={`${styles.actionBtn} ${styles.warning}`} onClick={() => setDeleteLead(lead)} title="Excluir">
+                                                <button
+                                                    className={`${styles.actionBtn} ${styles.warning}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setDeleteLead(lead);
+                                                    }}
+                                                    title="Excluir"
+                                                >
                                                     <Trash2 size={16} />
                                                 </button>
-                                                <button className={`${styles.actionBtn} ${styles.danger}`} onClick={() => setBlockLead(lead)} title="Bloquear">
+                                                <button
+                                                    className={`${styles.actionBtn} ${styles.danger}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setBlockLead(lead);
+                                                    }}
+                                                    title="Bloquear"
+                                                >
                                                     <Ban size={16} />
                                                 </button>
                                             </div>
@@ -467,6 +502,16 @@ export default function LeadsPage() {
                 lead={editingLead}
                 pipelines={pipelines}
                 loading={modalLoading}
+            />
+
+            <LeadDetailsModal
+                isOpen={!!viewingLead}
+                onClose={() => setViewingLead(null)}
+                lead={viewingLead}
+                onEdit={(lead) => {
+                    setViewingLead(null);
+                    setEditingLead(lead);
+                }}
             />
 
             <ConfirmModal

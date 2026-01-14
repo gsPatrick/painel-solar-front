@@ -370,7 +370,7 @@
 }
 
 /* Responsive */
-@media (max-width: 640px) {
+@media (max-width: 1024px) {
     .formGrid.cols2 {
         grid-template-columns: 1fr;
     }
@@ -381,9 +381,16 @@
 
     .footer {
         flex-direction: column-reverse;
+        justify-content: center;
+        gap: 12px;
     }
 
     .btn {
         width: 100%;
+    }
+
+    .modal {
+        max-width: 95% !important;
+        margin: 0 10px;
     }
 }

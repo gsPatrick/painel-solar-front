@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send,
     Users,
@@ -11,11 +11,18 @@ import {
     AlertCircle,
     RefreshCw,
     CheckSquare,
-    Square
+    Square,
+    Clock,
+    Shield,
+    XOctagon,
+    Play
 } from 'lucide-react';
+import { io } from 'socket.io-client';
 import Header from '@/components/layout/Header/Header';
 import { pipelineService, leadService, marketingService } from '@/services/api';
 import styles from './page.module.css';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://geral-painelsolar-sistema.r954jc.easypanel.host';
 
 export default function MarketingPage() {
     const [loading, setLoading] = useState(true);
@@ -32,12 +39,67 @@ export default function MarketingPage() {
     // Message
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
-    const [sendResult, setSendResult] = useState(null);
 
-    // Initial Load
+    // Bulk Config
+    const [delayPreset, setDelayPreset] = useState('recommended'); // 'fast', 'recommended', 'slow', 'custom'
+    const [delaySettings, setDelaySettings] = useState({ min: 15, max: 30 });
+    const [activeJob, setActiveJob] = useState(null); // { total, current, success, failed, status }
+
+    const socketRef = useRef(null);
+
+    // Initial Load & Socket Check
     useEffect(() => {
         loadPipelines();
+        checkActiveJob();
+
+        // Connect Socket
+        socketRef.current = io(API_URL.replace('/api', ''), {
+            transports: ['websocket', 'polling'],
+        });
+
+        socketRef.current.on('bulk_progress', (jobData) => {
+            console.log('Bulk Progress:', jobData);
+            setActiveJob(jobData);
+            if (jobData.status === 'completed' || jobData.status === 'stopped') {
+                setSending(false);
+            } else {
+                setSending(true);
+            }
+        });
+
+        return () => {
+            if (socketRef.current) socketRef.current.disconnect();
+        };
     }, []);
+
+    // Check if there is a running job on server
+    const checkActiveJob = async () => {
+        try {
+            const status = await marketingService.getBulkStatus();
+            if (status && status.status === 'running') {
+                setActiveJob(status);
+                setSending(true);
+            }
+        } catch (error) {
+            console.error('Error checking bulk status:', error);
+        }
+    };
+
+    // Update settings when preset changes
+    useEffect(() => {
+        switch (delayPreset) {
+            case 'fast':
+                setDelaySettings({ min: 5, max: 10 });
+                break;
+            case 'recommended':
+                setDelaySettings({ min: 15, max: 30 });
+                break;
+            case 'slow':
+                setDelaySettings({ min: 30, max: 60 });
+                break;
+            // custom keeps current values
+        }
+    }, [delayPreset]);
 
     // Fetch leads when filters change
     useEffect(() => {
@@ -95,40 +157,114 @@ export default function MarketingPage() {
     const handleSend = async () => {
         if (!message.trim()) return;
 
+        if (delayPreset === 'fast') {
+            const confirmed = confirm('ATENÇÃO: O modo "Rápido" tem ALTO RISCO de bloqueio do WhatsApp. Use apenas para listas muito pequenas (< 50 leads). Deseja continuar mesmo assim?');
+            if (!confirmed) return;
+        }
+
         setSending(true);
-        setSendResult(null);
+        setActiveJob({
+            total: selectedLeads.length,
+            current: 0,
+            success: 0,
+            failed: 0,
+            status: 'running'
+        });
 
         try {
-            const result = await marketingService.bulkSend(selectedLeads, message);
-            setSendResult({
-                type: 'success',
-                message: `Disparo concluído! Enviado para ${result.success} leads.`,
-                details: result
+            await marketingService.bulkSend(selectedLeads, message, {
+                minDelay: parseInt(delaySettings.min),
+                maxDelay: parseInt(delaySettings.max)
             });
+            // Job started, socket will update
             setMessage('');
             setSelectedLeads([]);
         } catch (error) {
             console.error('Send error:', error);
-            setSendResult({
-                type: 'error',
-                message: 'Erro ao realizar disparo. Verifique o console ou tente novamente.'
-            });
-        } finally {
+            alert('Erro ao iniciar disparo: ' + (error.response?.data?.error || error.message));
             setSending(false);
+            setActiveJob(null);
+        }
+    };
+
+    const handleStop = async () => {
+        if (!confirm('Deseja realmente parar o disparo?')) return;
+        try {
+            await marketingService.stopBulkSend();
+        } catch (error) {
+            console.error('Stop error:', error);
         }
     };
 
     const selectedCount = selectedLeads.length;
+
+    // Helper for progress bar color
+    const getProgressColor = () => {
+        if (!activeJob) return '#ccc';
+        if (activeJob.status === 'completed') return '#10B981'; // Green
+        if (activeJob.status === 'stopped') return '#EF4444';   // Red
+        return '#3B82F6'; // Blue
+    };
 
     return (
         <>
             <Header title="Disparo em Massa" />
 
             <div className={styles.container}>
-                {/* Top Section: Filters & Composer */}
+                {/* Active Job Progress Banner */}
+                <AnimatePresence>
+                    {activeJob && (activeJob.status === 'running' || activeJob.status === 'completed' || activeJob.status === 'stopped') && (
+                        <motion.div
+                            className={styles.jobBanner}
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                        >
+                            <div className={styles.jobHeader}>
+                                <h3>
+                                    {activeJob.status === 'running' && <RefreshCw className={styles.spin} size={16} />}
+                                    {activeJob.status === 'completed' && <CheckCircle size={16} />}
+                                    {activeJob.status === 'stopped' && <XOctagon size={16} />}
+
+                                    {activeJob.status === 'running' ? 'Disparo em Andamento...' :
+                                        activeJob.status === 'completed' ? 'Disparo Concluído!' : 'Disparo Interrompido'}
+                                </h3>
+                                {activeJob.status === 'running' && (
+                                    <button onClick={handleStop} className={styles.stopBtn}>
+                                        <XOctagon size={14} /> Parar
+                                    </button>
+                                )}
+                                {(activeJob.status === 'completed' || activeJob.status === 'stopped') && (
+                                    <button onClick={() => setActiveJob(null)} className={styles.closeJobBtn}>
+                                        <XOctagon size={14} /> Fechar
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className={styles.progressContainer}>
+                                <div className={styles.progressBar}>
+                                    <div
+                                        className={styles.progressFill}
+                                        style={{
+                                            width: `${(activeJob.current / activeJob.total) * 100}%`,
+                                            backgroundColor: getProgressColor()
+                                        }}
+                                    />
+                                </div>
+                                <div className={styles.statsRow}>
+                                    <span>Total: <strong>{activeJob.total}</strong></span>
+                                    <span>Enviados: <strong>{activeJob.success}</strong></span>
+                                    {activeJob.failed > 0 && <span className={styles.errorText}>Falhas: <strong>{activeJob.failed}</strong></span>}
+                                    <span>Progresso: <strong>{Math.round((activeJob.current / activeJob.total) * 100)}%</strong></span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 <div className={styles.topGrid}>
 
-                    {/* Filters Card */}
+                    {/* Filters & Config Card */}
                     <motion.div
                         className={styles.card}
                         initial={{ opacity: 0, y: 10 }}
@@ -136,8 +272,71 @@ export default function MarketingPage() {
                     >
                         <div className={styles.cardHeader}>
                             <Filter size={20} />
-                            <h2>Filtros</h2>
+                            <h2>Configuração</h2>
                         </div>
+
+                        {/* Presets */}
+                        <div className={styles.configSection}>
+                            <label>Velocidade de Envio</label>
+                            <div className={styles.presets}>
+                                <button
+                                    className={`${styles.presetBtn} ${delayPreset === 'fast' ? styles.active : ''} ${styles.danger}`}
+                                    onClick={() => setDelayPreset('fast')}
+                                    title="5-10 segundos"
+                                >
+                                    ⚡ Rápido
+                                </button>
+                                <button
+                                    className={`${styles.presetBtn} ${delayPreset === 'recommended' ? styles.active : ''} ${styles.safe}`}
+                                    onClick={() => setDelayPreset('recommended')}
+                                    title="15-30 segundos"
+                                >
+                                    🛡️ Seguro
+                                </button>
+                                <button
+                                    className={`${styles.presetBtn} ${delayPreset === 'slow' ? styles.active : ''} ${styles.safer}`}
+                                    onClick={() => setDelayPreset('slow')}
+                                    title="30-60 segundos"
+                                >
+                                    🐢 Lento
+                                </button>
+                            </div>
+
+                            <div className={styles.delayInputs}>
+                                <div className={styles.inputGroup}>
+                                    <label>Mín (s)</label>
+                                    <input
+                                        type="number"
+                                        value={delaySettings.min}
+                                        onChange={(e) => {
+                                            setDelaySettings({ ...delaySettings, min: e.target.value });
+                                            setDelayPreset('custom');
+                                        }}
+                                        min="1"
+                                    />
+                                </div>
+                                <div className={styles.inputGroup}>
+                                    <label>Máx (s)</label>
+                                    <input
+                                        type="number"
+                                        value={delaySettings.max}
+                                        onChange={(e) => {
+                                            setDelaySettings({ ...delaySettings, max: e.target.value });
+                                            setDelayPreset('custom');
+                                        }}
+                                        min="1"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className={styles.infoBox}>
+                                {delayPreset === 'fast' && <p className={styles.dangerText}>⚠️ Alto risco de bloqueio. Use apenas para listas pequenas.</p>}
+                                {delayPreset === 'recommended' && <p className={styles.safeText}>✅ Recomendado. Simula comportamento humano.</p>}
+                                {delayPreset === 'slow' && <p className={styles.saferText}>🛡️ Segurança máxima para listas grandes.</p>}
+                            </div>
+                        </div>
+
+                        <hr className={styles.divider} />
 
                         <div className={styles.filterGroup}>
                             <label>Funil / Etapa</label>
@@ -190,14 +389,15 @@ export default function MarketingPage() {
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             placeholder="Escreva sua mensagem... Use {nome} para personalizar."
-                            rows={5}
+                            rows={8}
+                            disabled={sending}
                         />
 
                         <div className={styles.actions}>
                             <div className={styles.helperText}>
                                 {selectedCount === 0
                                     ? 'Selecione leads abaixo para enviar'
-                                    : `${selectedCount} leads selecionados`
+                                    : `${selectedCount} leads selecionados para envio`
                                 }
                             </div>
 
@@ -214,18 +414,11 @@ export default function MarketingPage() {
                                 ) : (
                                     <>
                                         <Send size={18} />
-                                        Enviar Mensagem
+                                        Iniciar Disparo
                                     </>
                                 )}
                             </button>
                         </div>
-
-                        {sendResult && (
-                            <div className={`${styles.resultBanner} ${styles[sendResult.type]}`}>
-                                {sendResult.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-                                {sendResult.message}
-                            </div>
-                        )}
                     </motion.div>
                 </div>
 

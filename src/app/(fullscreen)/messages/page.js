@@ -55,6 +55,10 @@ export default function MessagesPage() {
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
 
+    // Mobile State
+    const [activeTab, setActiveTab] = useState('messages'); // 'messages' | 'kanban'
+    const [mobileView, setMobileView] = useState('list'); // 'list' | 'chat'
+
     // Resizable panel
     const [chatWidth, setChatWidth] = useState(55); // percentage
     const [isResizing, setIsResizing] = useState(false);
@@ -176,6 +180,8 @@ export default function MessagesPage() {
 
     const handleLeadSelect = async (lead) => {
         setSelectedLead(lead);
+        setMobileView('chat'); // Switch to chat view on mobile select
+        setActiveTab('messages'); // Force switch to messages tab if coming from Kanban
         try {
             const history = await messageService.getHistory(lead.id);
             setMessages(history);
@@ -556,18 +562,54 @@ export default function MessagesPage() {
                 onChange={handleFileChange}
             />
 
-            {/* Simple Header */}
+            {/* Header */}
+            {/* Header */}
             <header className={styles.header}>
-                <button className={styles.backButton} onClick={() => router.push('/')}>
-                    <ArrowLeft size={20} />
-                    <span>Voltar ao Dashboard</span>
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%' }}>
+                    {/* Dashboard Button - Hide on mobile if in chat view */}
+                    <button
+                        className={`${styles.backButton} ${activeTab === 'messages' && mobileView === 'chat' ? styles.desktopNav : ''}`}
+                        onClick={() => router.push('/')}
+                    >
+                        <ArrowLeft size={20} />
+                        <span className={styles.desktopNav}>Dashboard</span>
+                    </button>
 
-                <div className={styles.headerCenter}>
+                    {/* Mobile: Back from Chat to List - Only show if in chat view */}
+                    <div className={styles.mobileNav}>
+                        {activeTab === 'messages' && mobileView === 'chat' && (
+                            <button className={styles.backButton} onClick={() => setMobileView('list')}>
+                                <ArrowLeft size={20} />
+                                <span style={{ fontSize: '0.9rem' }}>Voltar</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Mobile Tab Switcher */}
+                <div className={`${styles.mobileTabs} ${styles.mobileNav}`}>
+                    <button
+                        className={`${styles.tabBtn} ${activeTab === 'messages' ? styles.activeTab : ''}`}
+                        onClick={() => setActiveTab('messages')}
+                    >
+                        <MessageCircle size={18} />
+                        Chat
+                    </button>
+                    <button
+                        className={`${styles.tabBtn} ${activeTab === 'kanban' ? styles.activeTab : ''}`}
+                        onClick={() => setActiveTab('kanban')}
+                    >
+                        {/* Actually use Square or ViewColumns */}
+                        <Square size={18} />
+                        Kanban
+                    </button>
+                </div>
+
+                <div className={`${styles.headerCenter} ${styles.desktopNav}`}>
                     <h1>Modo Mensagem</h1>
                 </div>
 
-                <div className={styles.headerRight}>
+                <div className={`${styles.headerRight} ${styles.desktopNav}`}>
                     <span className={styles.resizeHint}>← Arraste o divisor para redimensionar →</span>
                 </div>
             </header>
@@ -575,9 +617,12 @@ export default function MessagesPage() {
             {/* Split View with Resizable Divider */}
             <div className={styles.splitView} ref={containerRef}>
                 {/* Left: Chat Section */}
-                <div className={styles.chatSection} style={{ width: `${chatWidth}%` }}>
+                <div
+                    className={`${styles.chatSection} ${activeTab === 'kanban' ? styles.mobileHidden : ''}`}
+                    style={{ width: `${chatWidth}%` }}
+                >
                     {/* Contacts List */}
-                    <div className={styles.contactsList}>
+                    <div className={`${styles.contactsList} ${mobileView === 'chat' ? styles.mobileHidden : ''}`}>
                         <div className={styles.searchBox}>
                             <Search size={18} color="#666" />
                             <input
@@ -630,7 +675,7 @@ export default function MessagesPage() {
                     </div>
 
                     {/* Chat Window */}
-                    <div className={styles.chatWindow}>
+                    <div className={`${styles.chatWindow} ${mobileView === 'list' ? styles.mobileHidden : ''}`}>
                         {selectedLead ? (
                             <>
                                 {/* Chat Header */}
@@ -798,7 +843,10 @@ export default function MessagesPage() {
                 </div>
 
                 {/* Right: Kanban Section */}
-                <div className={styles.kanbanSection} style={{ width: `${100 - chatWidth}%` }}>
+                <div
+                    className={`${styles.kanbanSection} ${activeTab === 'messages' ? styles.mobileHidden : ''}`}
+                    style={{ width: `${100 - chatWidth}%` }}
+                >
                     <div className={styles.kanbanHeader}>
                         <h2>Pipeline de Leads</h2>
                         <div className={styles.kanbanActions}>

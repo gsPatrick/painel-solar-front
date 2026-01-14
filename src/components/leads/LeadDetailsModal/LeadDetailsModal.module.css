@@ -1,0 +1,200 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.headerInfo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #4318FF 0%, #7B61FF 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.nameSection {
+    flex: 1;
+}
+
+.leadName {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1B2559;
+    margin: 0 0 0.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.leadPhone {
+    font-size: 0.9rem;
+    color: #A3AED0;
+    margin: 0;
+}
+
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #F4F7FE;
+    color: #A3AED0;
+}
+
+.badge[data-source="meta_ads"] {
+    background: rgba(24, 119, 242, 0.1);
+    color: #1877F2;
+}
+
+.badge[data-source="whatsapp"] {
+    background: rgba(37, 211, 102, 0.1);
+    color: #25D366;
+}
+
+.divider {
+    height: 1px;
+    background: #E2E8F0;
+    width: 100%;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.statItem {
+    background: #F8FAFC;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid #F1F5F9;
+}
+
+.statLabel {
+    display: block;
+    font-size: 0.8rem;
+    color: #A3AED0;
+    margin-bottom: 0.5rem;
+}
+
+.statValue {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1B2559;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.iconGreen {
+    color: #05CD99;
+}
+
+.iconYellow {
+    color: #FFB547;
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.sectionTitle {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1B2559;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.detailsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.detailItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.label {
+    font-size: 0.8rem;
+    color: #A3AED0;
+}
+
+.value {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #2B3674;
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btnEdit {
+    flex: 1;
+    background: #4318FF;
+    color: white;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btnEdit:hover {
+    background: #3311CC;
+}
+
+.btnClose {
+    flex: 1;
+    background: transparent;
+    border: 1px solid #E2E8F0;
+    color: #A3AED0;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .headerInfo {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .badge {
+        align-self: flex-start;
+    }
+
+    .statsGrid,
+    .detailsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .actions {
+        flex-direction: column-reverse;
+    }
+}

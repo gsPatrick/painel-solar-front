@@ -90,6 +90,25 @@
     }
 }
 
+/* Alert Pulse Animation for Overdue Leads */
+.alertPulse {
+    animation: alertPulseAnim 1s ease-in-out infinite;
+}
+
+@keyframes alertPulseAnim {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.1);
+    }
+}
+
 .leadCard.important:hover {
     box-shadow: 0 0 30px rgba(249, 115, 22, 0.3), var(--shadow-lg);
 }
@@ -99,6 +118,34 @@
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: var(--spacing-sm);
+    margin-right: 20px;
+    /* Make space for action button */
+}
+
+.actionButton {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.actionButton:hover {
+    transform: scale(1.1);
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-color: #eab308;
+    color: #eab308;
 }
 
 .leadName {
@@ -290,21 +337,23 @@
     width: 40%;
 }
 
-/* Alert Pulse Animation for Overdue Leads */
-.alertPulse {
-    animation: alertPulseAnim 1s ease-in-out infinite;
-}
 
-@keyframes alertPulseAnim {
 
-    0%,
-    100% {
-        opacity: 1;
-        transform: scale(1);
+/* Mobile Responsiveness */
+@media (max-width: 1024px) {
+    .leadCard:hover {
+        transform: none;
+        /* Disable hover lift on touch devices */
     }
 
-    50% {
-        opacity: 0.5;
-        transform: scale(1.1);
+    .actionButton {
+        opacity: 1;
+        /* Always visible */
+        width: 28px;
+        height: 28px;
+    }
+
+    .leadName {
+        font-size: 0.85rem;
     }
 }

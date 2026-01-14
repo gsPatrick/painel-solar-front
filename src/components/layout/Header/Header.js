@@ -17,16 +17,19 @@ import {
     Calendar,
     MessageSquare,
     AlertCircle,
-    Clock
+    Clock,
+    Menu
 } from 'lucide-react';
 import { authService, leadService, taskService } from '@/services/api';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotification } from '@/contexts/NotificationContext';
+import { useSidebar } from '@/contexts/SidebarContext';
 import styles from './Header.module.css';
 
 export default function Header({ title = 'Dashboard' }) {
     const router = useRouter();
     const { notifications, slaLeads, markAsRead, markAllAsRead } = useNotification();
+    const { toggle } = useSidebar(); // Consume sidebar context
     const [user, setUser] = useState(null);
 
     // Dropdowns
@@ -161,6 +164,9 @@ export default function Header({ title = 'Dashboard' }) {
     return (
         <header className={styles.header}>
             <div className={styles.left}>
+                <button className={styles.menuBtn} onClick={toggle}>
+                    <Menu size={24} />
+                </button>
                 <h1 className={styles.pageTitle}>{title}</h1>
                 <div className={styles.breadcrumb}>
                     <span><Sun size={14} /> DGE Energia</span>

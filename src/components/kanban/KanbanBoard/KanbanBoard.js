@@ -77,6 +77,7 @@ export default function KanbanBoard({
     onEditColumn,
     onDeleteColumn,
     onPipelineReorder,
+    onRecoveryAction,
     loading = false,
 }) {
     const [activeId, setActiveId] = useState(null);
@@ -225,6 +226,7 @@ export default function KanbanBoard({
                             onAddLead={onAddLead}
                             onEditColumn={onEditColumn}
                             onDeleteColumn={onDeleteColumn}
+                            onRecoveryAction={onRecoveryAction}
                         />
                     ))}
                 </SortableContext>

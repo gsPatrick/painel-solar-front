@@ -362,7 +362,12 @@ export default function AgendaPage() {
                                     onClick={() => handleDayClick(date)}
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    <span className={styles.dayNumber}>{date.getDate()}</span>
+                                    <span
+                                        className={styles.dayNumber}
+                                        data-weekday={weekDays[date.getDay()]}
+                                    >
+                                        {date.getDate()}
+                                    </span>
                                     <div className={styles.events}>
                                         {dayAppointments.map((apt) => (
                                             <div

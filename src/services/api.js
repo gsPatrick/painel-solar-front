@@ -207,6 +207,11 @@ export const leadService = {
         const response = await api.patch(`/leads/${id}/ai-status`, { ai_status: aiStatus });
         return response.data;
     },
+
+    async sendDataRecovery(id) {
+        const response = await api.post(`/leads/${id}/recovery`);
+        return response.data;
+    },
 };
 
 // ============================================
@@ -585,8 +590,18 @@ export const followupService = {
 
 // Marketing / Bulk Messages
 export const marketingService = {
-    bulkSend: async (leadIds, content) => {
-        const response = await api.post('/messages/bulk', { lead_ids: leadIds, content });
+    bulkSend: async (leadIds, content, options = {}) => {
+        const response = await api.post('/messages/bulk', { lead_ids: leadIds, content, options });
+        return response.data;
+    },
+
+    getBulkStatus: async () => {
+        const response = await api.get('/messages/bulk/status');
+        return response.data;
+    },
+
+    stopBulkSend: async () => {
+        const response = await api.post('/messages/bulk/stop');
         return response.data;
     },
 };

@@ -369,3 +369,84 @@
     height: 16px;
     color: var(--color-text-secondary);
 }
+
+/* Mobile Responsiveness */
+.menuBtn {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    padding: 8px;
+    margin-right: var(--spacing-sm);
+    cursor: pointer;
+    border-radius: var(--radius-md);
+}
+
+.menuBtn:hover {
+    background: var(--color-bg-main);
+}
+
+@media (max-width: 1024px) {
+    .header {
+        left: 0;
+        padding: 0 var(--spacing-md);
+    }
+
+    .menuBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pageTitle {
+        font-size: 1.125rem;
+    }
+
+    .breadcrumb {
+        display: none;
+    }
+
+    .searchBox {
+        display: none;
+        /* Hide search bar on mobile initially, or make it an icon toggle */
+        /* If we want to support search on mobile, we'd need a different UI flow (modal or expand) */
+    }
+
+    .searchWrapper {
+        display: none;
+        /* Temporarily hide functionality for cleaning up space */
+    }
+
+    /* Re-enable search icon if we implement mobile search toggle */
+}
+
+@media (max-width: 768px) {
+
+    .userInfo,
+    .chevron {
+        display: none;
+    }
+
+    .userMenu {
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .header {
+        padding: 0 var(--spacing-sm);
+    }
+
+    .right {
+        gap: var(--spacing-sm);
+    }
+
+    .pageTitle {
+        font-size: 1.1rem;
+        /* Allow title to shrink if needed or truncate */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
+    }
+}

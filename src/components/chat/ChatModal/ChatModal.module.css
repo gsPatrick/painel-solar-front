@@ -144,3 +144,33 @@
     background: #ccc;
     cursor: not-allowed;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 1024px) {
+    .modal {
+        width: 100%;
+        height: 100%;
+        /* Full screen on mobile */
+        max-width: none;
+        max-height: none;
+        border-radius: 0;
+    }
+
+    .overlay {
+        align-items: flex-end;
+        /* Or flex-start/stretch depending on desired slide-up effect, center is fine too */
+        padding: 0;
+    }
+
+    .header {
+        padding: 12px;
+    }
+
+    .messagesArea {
+        padding: 12px;
+    }
+
+    .bubble {
+        max-width: 85%;
+    }
+}

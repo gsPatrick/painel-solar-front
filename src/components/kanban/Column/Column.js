@@ -15,6 +15,7 @@ export default function Column({
     onAddLead,
     onEditColumn,
     onDeleteColumn,
+    onRecoveryAction,
     loading = false,
 }) {
     const [showMenu, setShowMenu] = useState(false);
@@ -137,6 +138,8 @@ export default function Column({
                                 <LeadCard
                                     key={lead.id}
                                     lead={lead}
+                                    pipeline={pipeline}
+                                    onRecoveryAction={onRecoveryAction}
                                     onClick={onLeadClick}
                                 />
                             ))}

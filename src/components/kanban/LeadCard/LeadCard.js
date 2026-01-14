@@ -12,12 +12,13 @@ import {
     MessageCircle,
     User,
     AlertCircle,
-    Calendar
+    Calendar,
+    Zap
 } from 'lucide-react';
 import clsx from 'clsx';
 import styles from './LeadCard.module.css';
 
-const LeadCard = forwardRef(({ lead, onClick, isDragging, loading = false }, ref) => {
+const LeadCard = forwardRef(({ lead, pipeline, onRecoveryAction, onClick, isDragging, loading = false }, ref) => {
     const {
         attributes,
         listeners,
@@ -250,6 +251,35 @@ const LeadCard = forwardRef(({ lead, onClick, isDragging, loading = false }, ref
             {...attributes}
             {...listeners}
         >
+            {/* Data Recovery Action Button (Only in Primeiro Contato) */}
+            {pipeline?.title?.toLowerCase().includes('primeiro contato') && (
+                <div
+                    className={styles.actionButton}
+                    title="Enviar Script de Recuperação"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        // Call API directly or pass handler? 
+                        // Ideally pass a handler `onAction` down. But for speed, I'll use a direct call if I can import service, or dispatch event.
+                        // Since this is a "dumb" component, it should stick to props.
+                        // I'll assume we can pass `onRecoveryAction` prop down from KanbanBoard -> Column -> LeadCard.
+                        // But that requires threading props.
+                        // Alternative: Just import `leadService` here and handle it (less clean but faster).
+                        // Or better: `onClick` handles generic click. Card click opens modal.
+                        // I need a separate button.
+                        // Let's use `onAction` prop and default to console.log if missing, but I need to implement the wiring.
+                        // Let's import `leadService` and `toast` here for immediate gratification.
+                        const { leadService } = require('@/services/api');
+                        const { useNotification } = require('@/contexts/NotificationContext');
+                        // Wait, hooks can't be used in callback.
+                        // I will just add the button and let the onClick trigger a prop I will add to props: `onRecovery`.
+                        if (props.onRecovery) props.onRecovery(lead);
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()} // Prevent drag
+                >
+                    <Zap size={14} fill="#eab308" color="#eab308" />
+                </div>
+            )}
+
             <div className={styles.header}>
                 <span className={clsx(styles.leadName, { [styles.important]: lead.is_important })}>
                     {lead.is_important && (

@@ -474,6 +474,19 @@ export default function KanbanPage() {
                     onEditColumn={handleEditColumn}
                     onDeleteColumn={handleDeleteColumn}
                     onPipelineReorder={handlePipelineReorder}
+                    onRecoveryAction={async (lead) => {
+                        if (!confirm(`Deseja enviar o script de recuperação para ${lead.name}?`)) return;
+
+                        try {
+                            showSuccessAlert('Enviando...', 'Processando script de recuperação');
+                            const { leadService } = require('@/services/api');
+                            const result = await leadService.sendDataRecovery(lead.id);
+                            showSuccessAlert('Sucesso', 'Script enviado com sucesso!');
+                        } catch (error) {
+                            console.error(error);
+                            showSuccessAlert('Erro', 'Falha ao enviar script', 'error');
+                        }
+                    }}
                     loading={loading}
                 />
 

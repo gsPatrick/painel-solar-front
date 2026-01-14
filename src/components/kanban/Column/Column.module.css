@@ -254,3 +254,26 @@
     gap: var(--spacing-xs);
     position: relative;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 1024px) {
+    .column {
+        width: 85vw;
+        min-width: 85vw;
+        /* Ensure full visibility on mobile scroll */
+        max-height: calc(100vh - 180px);
+        /* Adjust for header/nav */
+        scroll-snap-align: center;
+        /* Snap to center when scrolling */
+    }
+
+    .content {
+        padding: var(--spacing-sm);
+        gap: var(--spacing-sm);
+    }
+
+    .actions {
+        opacity: 1 !important;
+        /* Always show actions on mobile since hover is hard */
+    }
+}

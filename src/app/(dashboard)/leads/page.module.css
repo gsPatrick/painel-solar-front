@@ -412,3 +412,145 @@
 .noCampaign {
     color: #ccc;
 }
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .container {
+        padding: var(--spacing-md);
+    }
+
+    .header {
+        flex-direction: column;
+        gap: var(--spacing-lg);
+        align-items: stretch;
+    }
+
+    .headerLeft {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-md);
+    }
+
+    .searchBox {
+        width: 100%;
+    }
+
+    .searchInput,
+    .filterSelect {
+        height: 50px;
+        /* Larger touch target */
+        font-size: 1rem;
+    }
+
+    .filters {
+        flex-wrap: wrap;
+    }
+
+    .filterSelect {
+        flex: 1;
+        min-width: 140px;
+    }
+
+    .filterGroup {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .actions {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        /* Refresh small, Create big */
+    }
+
+    .btn {
+        padding: 14px 20px;
+        font-size: 1rem;
+    }
+
+    /* Card View for Mobile */
+    .tableWrapper {
+        overflow: visible;
+        background: transparent;
+        box-shadow: none;
+        margin: 0;
+    }
+
+    .table {
+        min-width: 0;
+        display: block;
+    }
+
+    .table thead {
+        display: none;
+    }
+
+    .table tbody {
+        display: block;
+        gap: 16px;
+    }
+
+    .table tr {
+        display: block;
+        background: var(--color-bg-card);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid #E2E8F0;
+        position: relative;
+    }
+
+    .table tr:last-child {
+        margin-bottom: 0;
+    }
+
+    .table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #F1F5F9;
+        text-align: right;
+    }
+
+    .table td:last-child {
+        border-bottom: none;
+        padding-top: 16px;
+        justify-content: flex-end;
+        /* Actions right aligned */
+    }
+
+    /* Lead Info Cell Special Styling */
+    .table td[data-label="Lead"] {
+        padding-top: 0;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #E2E8F0;
+        margin-bottom: 8px;
+    }
+
+    .table td[data-label="Lead"] .leadInfo {
+        width: 100%;
+    }
+
+    /* Add labels via ::before */
+    .table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+        text-align: left;
+        margin-right: 12px;
+    }
+
+    /* Hide label for Lead and Actions to keep them clean */
+    .table td[data-label="Lead"]::before,
+    .table td[data-label="Ações"]::before {
+        display: none;
+    }
+
+    .actionBtn {
+        width: 44px;
+        height: 44px;
+        background: var(--color-bg-main);
+    }
+}

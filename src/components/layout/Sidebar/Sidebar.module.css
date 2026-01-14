@@ -286,3 +286,45 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 1024px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        width: 280px;
+        /* Slightly narrower on mobile */
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 0 0 100px rgba(0, 0, 0, 0.5);
+        /* Stronger shadow on open */
+    }
+
+    .mobileCloseBtn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--color-text-secondary);
+        border: none;
+        margin-left: auto;
+        cursor: pointer;
+    }
+
+    .logo {
+        justify-content: space-between;
+    }
+
+    /* Overlay handled in JS or via a sibling element usually, but for now we rely on Sidebar being high z-index */
+}
+
+@media (min-width: 1025px) {
+    .mobileCloseBtn {
+        display: none;
+    }
+}

@@ -94,6 +94,8 @@
 /* Filter Tabs */
 .filterTabs {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: var(--spacing-sm);
     margin-bottom: var(--spacing-lg);
     background: var(--color-bg-card);
@@ -112,6 +114,9 @@
     border: none;
     background: transparent;
     cursor: pointer;
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
 }
 
 .filterTab:hover {
@@ -145,8 +150,10 @@
 }
 
 .dayCell {
-    min-height: 120px;
-    max-height: 150px;
+    /* Square aspect ratio for desktop */
+    aspect-ratio: 1 / 1;
+    min-height: 0;
+    height: auto;
     padding: var(--spacing-sm);
     background: var(--color-bg-card);
     display: flex;
@@ -207,7 +214,6 @@
 
 .events {
     display: flex;
-    flex-direction: column;
     gap: 4px;
     flex: 1;
 }
@@ -326,13 +332,102 @@
 }
 
 /* Responsive */
+/* Responsive */
 @media (max-width: 1024px) {
+    .container {
+        padding: var(--spacing-md);
+    }
+
+    .calendarGrid {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        background: transparent;
+    }
+
+    .dayHeader {
+        display: none;
+        /* Hide standard headers in vertical view */
+    }
+
     .dayCell {
-        min-height: 80px;
+        min-height: 140px;
+        /* Larger vertical space */
+        max-height: none;
+        /* Remove constraint */
+        aspect-ratio: auto;
+        /* Reset square ratio for list view */
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
+    }
+
+    .dayNumber {
+        width: auto;
+        height: auto;
+        justify-content: flex-start;
+        border-radius: 0;
+        margin-bottom: var(--spacing-sm);
+        font-size: 1rem;
+    }
+
+    .dayNumber::after {
+        content: attr(data-weekday);
+        /* If we can pass weekday via attr, otherwise relying on JS or simple date */
+        margin-left: 8px;
+        font-weight: 400;
+        color: var(--color-text-secondary);
+        font-size: 0.85rem;
+    }
+
+    .events {
+        overflow-x: auto;
+        padding-bottom: 4px;
+        width: 100%;
+        gap: 8px;
+        /* More spacing between squares */
     }
 
     .event {
-        font-size: 0.7rem;
-        padding: 2px 6px;
+        min-width: 85px;
+        height: 85px;
+        /* Square shape */
+        white-space: normal;
+        /* Allow text wrapping */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        flex-shrink: 0;
+        /* Prevent shrinking */
+        font-size: 0.75rem;
+        padding: 4px;
+        line-height: 1.2;
+    }
+
+    .header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        align-items: stretch;
+    }
+
+    .header>div {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .dayCell.today {
+        background: white;
+        /* Keep consistent card look */
+        border: 1px solid var(--color-secondary);
+        /* Highlight border */
+        box-shadow: 0 0 0 1px var(--color-secondary);
+        /* Double border effect */
+    }
+
+    .dayCell.today .dayNumber {
+        background: transparent;
+        color: var(--color-secondary);
+        font-weight: 800;
     }
 }
