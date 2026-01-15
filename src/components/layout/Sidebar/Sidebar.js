@@ -43,8 +43,8 @@ const navItems = [
         items: [
             { href: '/leads', icon: Users, label: 'Leads', badge: null },
             { href: '/marketing', icon: Megaphone, label: 'Disparos em Massa', badge: null },
-            { href: '/tasks', icon: CheckSquare, label: 'Tarefas', badge: 5 },
-            { href: '/reminders', icon: Bell, label: 'Lembretes', badge: null },
+            // Removed Tarefas
+            { href: '/reminders', icon: Bell, label: 'Lembretes', badge: 5 }, // Using Bell icon as requested
             { href: '/messages', icon: MessageSquare, label: 'Modo Mensagem', isFullscreen: true },
         ],
     },
