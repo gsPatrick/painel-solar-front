@@ -617,7 +617,10 @@ export default function KanbanPage() {
                                 <div className={styles.modalFooter}>
                                     <button
                                         className={`${styles.btn} ${styles.btnDanger}`}
-                                        onClick={() => setDeleteLead(selectedLead)}
+                                        onClick={() => {
+                                            setShowDetailModal(false);
+                                            setDeleteLead(selectedLead);
+                                        }}
                                     >
                                         <Trash2 size={16} />
                                         Excluir
