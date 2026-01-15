@@ -15,8 +15,8 @@ import {
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import TaskModal from '@/components/tasks/TaskModal/TaskModal';
-import { taskService, leadService } from '@/services/api';
-import styles from '../tasks/page.module.css'; // Reuse tasks styles
+import { appointmentService, leadService } from '@/services/api';
+import styles from '../tasks/page.module.css';
 
 export default function RemindersPage() {
     // Data States
@@ -25,7 +25,7 @@ export default function RemindersPage() {
     const [loading, setLoading] = useState(true);
 
     // Filters
-    const [statusFilter, setStatusFilter] = useState('pending'); // 'pending', 'done'
+    const [statusFilter, setStatusFilter] = useState('scheduled'); // 'scheduled', 'completed'
     const [dateFilter, setDateFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -50,14 +50,11 @@ export default function RemindersPage() {
     const loadData = async () => {
         setLoading(true);
         try {
-            const [fetchedTasks, fetchedLeads] = await Promise.all([
-                taskService.getAll(),
+            const [fetchedAppointments, fetchedLeads] = await Promise.all([
+                appointmentService.getAll({ type: 'LEMBRETE' }),
                 leadService.getAll()
             ]);
-            // Client-side filtering for Reminders type
-            // Ideally backend should filter, but for now we filter here
-            const reminders = (fetchedTasks || []).filter(t => t.type === 'REMINDER');
-            setTasks(reminders);
+            setTasks(fetchedAppointments || []);
             setLeads(fetchedLeads || []);
         } catch (error) {
             console.error("Error loading reminders:", error);
@@ -71,13 +68,22 @@ export default function RemindersPage() {
     const handleCreateTask = async (data) => {
         setModalLoading(true);
         try {
-            const payload = { ...data, type: 'REMINDER' }; // Force type
+            // Map Modal Data (Task format) to Appointment format
+            const payload = {
+                title: data.title,
+                description: data.description,
+                lead_id: data.lead_id || null,
+                date_time: data.due_date, // Map due_date -> date_time
+                type: 'LEMBRETE',
+                status: 'scheduled'
+            };
+
             if (editingTask) {
-                const updated = await taskService.update(editingTask.id, payload);
+                const updated = await appointmentService.update(editingTask.id, payload);
                 setTasks(prev => prev.map(t => t.id === updated.id ? updated : t));
                 setEditingTask(null);
             } else {
-                const newT = await taskService.create(payload);
+                const newT = await appointmentService.create(payload);
                 setTasks(prev => [newT, ...prev]);
             }
             setShowTaskModal(false);
@@ -92,7 +98,7 @@ export default function RemindersPage() {
     const handleDeleteTask = async (id) => {
         if (!confirm('Excluir este lembrete?')) return;
         try {
-            await taskService.delete(id);
+            await appointmentService.delete(id);
             setTasks(prev => prev.filter(t => t.id !== id));
         } catch (error) {
             console.error(error);
@@ -101,14 +107,14 @@ export default function RemindersPage() {
 
     const handleCompleteTask = async (task) => {
         try {
-            if (task.status === 'done') {
+            if (task.status === 'completed') {
                 // Reopen
-                await taskService.update(task.id, { status: 'pending' });
-                setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'pending' } : t));
+                await appointmentService.update(task.id, { status: 'scheduled' });
+                setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'scheduled' } : t));
             } else {
                 // Complete
-                await taskService.markAsDone(task.id);
-                setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'done' } : t));
+                await appointmentService.complete(task.id);
+                setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'completed' } : t));
             }
         } catch (error) {
             console.error(error);
@@ -132,7 +138,7 @@ export default function RemindersPage() {
 
             // 3. Date Filter
             if (dateFilter !== 'all') {
-                const due = new Date(task.due_date);
+                const due = new Date(task.date_time); // Use date_time
                 due.setHours(0, 0, 0, 0);
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
@@ -144,14 +150,14 @@ export default function RemindersPage() {
                     tomorrow.setDate(today.getDate() + 1);
                     if (due.getTime() !== tomorrow.getTime()) return false;
                 } else if (dateFilter === 'overdue') {
-                    if (task.status !== 'done' && due < today) return true;
+                    if (task.status !== 'completed' && due < today) return true;
                     return false;
                 }
             }
 
             return true;
         })
-            .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
+            .sort((a, b) => new Date(a.date_time) - new Date(b.date_time));
     };
 
     const filteredTasks = getFilteredTasks();
@@ -169,8 +175,8 @@ export default function RemindersPage() {
     };
 
     const isLate = (task) => {
-        if (task.status === 'done') return false;
-        const due = new Date(task.due_date);
+        if (task.status === 'completed') return false;
+        const due = new Date(task.date_time);
         const now = new Date();
         now.setHours(0, 0, 0, 0);
         return due < now;
@@ -210,14 +216,14 @@ export default function RemindersPage() {
                     <div className={styles.filterGroups}>
                         <div className={styles.filterGroup}>
                             <button
-                                className={`${styles.filterBtn} ${statusFilter === 'pending' ? styles.active : ''}`}
-                                onClick={() => setStatusFilter('pending')}
+                                className={`${styles.filterBtn} ${statusFilter === 'scheduled' ? styles.active : ''}`}
+                                onClick={() => setStatusFilter('scheduled')}
                             >
                                 Pendentes
                             </button>
                             <button
-                                className={`${styles.filterBtn} ${statusFilter === 'done' ? styles.active : ''}`}
-                                onClick={() => setStatusFilter('done')}
+                                className={`${styles.filterBtn} ${statusFilter === 'completed' ? styles.active : ''}`}
+                                onClick={() => setStatusFilter('completed')}
                             >
                                 Concluídos
                             </button>
@@ -232,7 +238,7 @@ export default function RemindersPage() {
                             </button>
                             <button
                                 className={`${styles.filterBtn} ${dateFilter === 'overdue' ? styles.active : ''}`}
-                                onClick={() => { setDateFilter('overdue'); setStatusFilter('pending'); }}
+                                onClick={() => { setDateFilter('overdue'); setStatusFilter('scheduled'); }}
                                 style={{ color: dateFilter === 'overdue' ? '#DC2626' : undefined }}
                             >
                                 Atrasados
@@ -253,7 +259,7 @@ export default function RemindersPage() {
                         {paginatedTasks.length > 0 ? (
                             paginatedTasks.map(task => {
                                 const late = isLate(task);
-                                const statusClass = task.status === 'done' ? 'status-done' : late ? 'status-late' : 'status-pending';
+                                const statusClass = task.status === 'completed' ? 'status-done' : late ? 'status-late' : 'status-pending';
 
                                 return (
                                     <motion.div
@@ -266,9 +272,9 @@ export default function RemindersPage() {
                                         <div className={styles.cardLeftBorder}></div>
 
                                         <div className={styles.cardHeader}>
-                                            <h3 className={styles.taskTitle}>{task.title}</h3>
+                                            <h3 className={styles.taskTitle}>{task.title || 'Sem título'}</h3>
                                             <span className={`${styles.statusBadge} ${styles[statusClass]}`}>
-                                                {task.status === 'done' ? 'Concluído' : late ? 'Atrasado' : 'Pendente'}
+                                                {task.status === 'completed' ? 'Concluído' : late ? 'Atrasado' : 'Pendente'}
                                             </span>
                                         </div>
 
@@ -286,25 +292,29 @@ export default function RemindersPage() {
                                             )}
                                             <div className={styles.infoRow}>
                                                 <Calendar size={14} className={styles.icon} />
-                                                <span>{formatDate(task.due_date)}</span>
-                                                {task.due_date && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>({new Date(task.due_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})</span>}
+                                                <span>{formatDate(task.date_time)}</span>
+                                                {task.date_time && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>({new Date(task.date_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})</span>}
                                             </div>
                                         </div>
 
                                         <div className={styles.cardFooter}>
                                             <button
-                                                className={`${styles.actionBtn} ${task.status === 'done' ? styles.btnComplete : ''}`}
-                                                title={task.status === 'done' ? "Reabrir" : "Concluir"}
+                                                className={`${styles.actionBtn} ${task.status === 'completed' ? styles.btnComplete : ''}`}
+                                                title={task.status === 'completed' ? "Reabrir" : "Concluir"}
                                                 onClick={(e) => { e.stopPropagation(); handleCompleteTask(task); }}
                                             >
-                                                {task.status === 'done' ? <CheckCircle size={18} /> : <Check size={18} />}
+                                                {task.status === 'completed' ? <CheckCircle size={18} /> : <Check size={18} />}
                                             </button>
                                             <button
                                                 className={styles.actionBtn}
                                                 title="Editar"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setEditingTask(task);
+                                                    setEditingTask({
+                                                        ...task,
+                                                        due_date: task.date_time, // Map date_time -> due_date for modal
+                                                        status: task.status === 'completed' ? 'done' : 'pending'
+                                                    });
                                                     setShowTaskModal(true);
                                                 }}
                                             >
@@ -363,7 +373,6 @@ export default function RemindersPage() {
                     task={editingTask}
                     leads={leads}
                     loading={modalLoading}
-                // We need to update TaskModal to handle forcedType if we want to hide the selector
                 />
             </div>
         </>
