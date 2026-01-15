@@ -733,132 +733,172 @@ export default function FollowUpPage() {
                             Leads que ultrapassaram o tempo das regras configuradas e precisam de atenção (Automático ou Manual).
                         </p>
 
-                        {(filteredPendingLeads.length === 0 && filteredApprovalLeads.length === 0) ? (
-                            <div className={styles.emptyState}>
-                                <CheckCircle size={32} />
-                                <p>Tudo em dia! Nenhum lead atrasado nesta etapa.</p>
-                            </div>
-                        ) : (
-                            <div className={styles.leadsList}>
-                                {/* Pending Leads (Auto/Manual Active) */}
-                                {filteredPendingLeads.map((lead) => (
-                                    <div key={lead.id} className={styles.leadItem}>
-                                        <div style={{ marginRight: '10px' }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedLeads.includes(lead.id)}
-                                                onChange={() => handleToggleSelect(lead.id)}
-                                                disabled={processingIds.includes(lead.id)}
-                                                style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                                            />
-                                        </div>
-                                        <div className={styles.leadInfo}>
-                                            <span className={styles.leadName}>{lead.name}</span>
-                                            <span className={styles.leadPhone}>{lead.phone}</span>
-                                            <span className={styles.leadDate}>
-                                                Última interação: {formatDate(lead.last_interaction_at)}
-                                            </span>
-                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                                                {processingIds.includes(lead.id) && (
-                                                    <span style={{ padding: '2px 6px', background: '#dbeafe', borderRadius: '4px', fontSize: '0.75rem', color: '#2563eb', fontWeight: 'bold' }}>
-                                                        ⏳ Enviando...
-                                                    </span>
-                                                )}
-                                                {lead.pipeline && (
-                                                    <span style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.75rem', color: '#64748b' }}>
-                                                        {lead.pipeline.title}
-                                                    </span>
-                                                )}
-                                                {lead.manualOnly && (
-                                                    <span style={{ padding: '2px 6px', background: '#fffbeb', borderRadius: '4px', fontSize: '0.75rem', color: '#b45309', border: '1px solid #fcd34d' }}>
-                                                        ⚠️ Atrasado (Manual)
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className={styles.leadActions}>
-                                            <span className={styles.followupCount}>
-                                                {lead.followup_count || 0}/{filteredRules.length}
-                                            </span>
+                        {/* Group leads by follow-up count (Step) */}
+                        {(() => {
+                            // Group logic
+                            const leadsByStep = {};
+                            const maxSteps = filteredRules.length;
 
-                                            <button
-                                                className={styles.sendBtn}
-                                                onClick={() => handleSendFollowup(lead.id)}
-                                                disabled={processingIds.includes(lead.id)}
-                                                title="Enviar Mensagem agora"
-                                            >
-                                                <Send size={14} />
-                                                Enviar
-                                            </button>
+                            // Initialize groups based on rules
+                            filteredRules.forEach((rule, index) => {
+                                leadsByStep[index] = {
+                                    title: `${rule.step_number}ª Tentativa de Contato`,
+                                    leads: []
+                                };
+                            });
+                            // Add a catch-all for unknown/manual
+                            leadsByStep['manual'] = { title: 'Atrasados (Manual / Outros)', leads: [] };
 
-                                            <button
-                                                className={styles.markSentBtn}
-                                                onClick={() => handleMarkAsSent(lead.id)}
-                                                disabled={processingIds.includes(lead.id)}
-                                                title="Marcar como já enviado (não dispara mensagem)"
-                                                style={{ marginLeft: '5px', background: 'none', border: '1px solid #ddd', color: '#666', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}
-                                            >
-                                                <CheckCircle size={14} />
-                                            </button>
-                                        </div>
+                            allTabLeads.forEach(lead => {
+                                const count = lead.followup_count || 0;
+                                // If count < rules.length, it belongs to that step index
+                                if (count < maxSteps) {
+                                    leadsByStep[count].leads.push(lead);
+                                } else {
+                                    leadsByStep['manual'].leads.push(lead);
+                                }
+                            });
+
+                            // Filter out empty groups
+                            const activeGroups = Object.keys(leadsByStep)
+                                .filter(key => leadsByStep[key].leads.length > 0)
+                                .map(key => ({ id: key, ...leadsByStep[key] }));
+
+                            if (activeGroups.length === 0) {
+                                return (
+                                    <div className={styles.emptyState}>
+                                        <CheckCircle size={32} />
+                                        <p>Tudo em dia! Nenhum lead atrasado nesta etapa.</p>
                                     </div>
-                                ))}
+                                );
+                            }
 
-                                {/* Approval Leads (Paused AI) */}
-                                {filteredApprovalLeads.map((lead) => (
-                                    <div key={lead.id} className={`${styles.leadItem} ${styles.leadItemWarning}`}>
-                                        <div style={{ marginRight: '10px' }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedLeads.includes(lead.id)}
-                                                onChange={() => handleToggleSelect(lead.id)}
-                                                disabled={processingIds.includes(lead.id)}
-                                                style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                                            />
-                                        </div>
-                                        <div className={styles.leadInfo}>
-                                            <span className={styles.leadName}>{lead.name}</span>
-                                            <span className={styles.leadPhone}>{lead.phone}</span>
-                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                                                {processingIds.includes(lead.id) && (
-                                                    <span style={{ padding: '2px 6px', background: '#dbeafe', borderRadius: '4px', fontSize: '0.75rem', color: '#2563eb', fontWeight: 'bold' }}>
-                                                        ⏳ Enviando...
-                                                    </span>
-                                                )}
-                                                <span className={styles.leadStatus}>
-                                                    IA: {lead.ai_status}
+                            return activeGroups.map(group => {
+                                const isGroupAllSelected = group.leads.every(l => selectedLeads.includes(l.id));
+                                const handleToggleGroup = () => {
+                                    if (isGroupAllSelected) {
+                                        // Deselect all in group
+                                        setSelectedLeads(prev => prev.filter(id => !group.leads.find(l => l.id === id)));
+                                    } else {
+                                        // Select all in group
+                                        const groupIds = group.leads.map(l => l.id);
+                                        setSelectedLeads(prev => [...new Set([...prev, ...groupIds])]);
+                                    }
+                                };
+
+                                return (
+                                    <div key={group.id} style={{ marginBottom: '24px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                                        {/* Group Header */}
+                                        <div style={{ padding: '12px 16px', background: '#f1f5f9', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isGroupAllSelected}
+                                                    onChange={handleToggleGroup}
+                                                    style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                                                    title="Selecionar todo este bloco"
+                                                />
+                                                <h3 style={{ margin: 0, fontSize: '0.95rem', color: '#334155', fontWeight: 600 }}>
+                                                    {group.title}
+                                                </h3>
+                                                <span style={{ background: '#cbd5e1', padding: '2px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>
+                                                    {group.leads.length}
                                                 </span>
-                                                {lead.pipeline && (
-                                                    <span style={{ padding: '2px 6px', background: '#fff7ed', borderRadius: '4px', fontSize: '0.75rem', color: '#c2410c', border: '1px solid #fed7aa' }}>
-                                                        {lead.pipeline.title}
-                                                    </span>
-                                                )}
                                             </div>
                                         </div>
-                                        <div className={styles.leadActions}>
-                                            <button
-                                                className={styles.approveBtn}
-                                                onClick={() => handleApprove(lead.id)}
-                                                disabled={processingIds.includes(lead.id)}
-                                            >
-                                                <Play size={14} />
-                                                Aprovar e Enviar
-                                            </button>
 
-                                            <button
-                                                className={styles.markSentBtn}
-                                                onClick={() => handleMarkAsSent(lead.id)}
-                                                disabled={processingIds.includes(lead.id)}
-                                                title="Marcar como já enviado"
-                                                style={{ marginLeft: '5px', background: 'none', border: '1px solid #fbbf24', color: '#b45309', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}
-                                            >
-                                                <CheckCircle size={14} />
-                                            </button>
+                                        {/* Group Items */}
+                                        <div className={styles.leadsList} style={{ padding: '0', background: 'white' }}>
+                                            {group.leads.map(lead => {
+                                                const isPaused = lead.ai_status === 'human_intervention';
+                                                const itemClass = isPaused
+                                                    ? `${styles.leadItem} ${styles.leadItemWarning}`
+                                                    : styles.leadItem;
+
+                                                return (
+                                                    <div key={lead.id} className={itemClass} style={{ borderBottom: '1px solid #f1f5f9', borderRadius: 0 }}>
+                                                        <div style={{ marginRight: '10px' }}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={selectedLeads.includes(lead.id)}
+                                                                onChange={() => handleToggleSelect(lead.id)}
+                                                                disabled={processingIds.includes(lead.id)}
+                                                                style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                                                            />
+                                                        </div>
+                                                        <div className={styles.leadInfo}>
+                                                            <span className={styles.leadName}>{lead.name}</span>
+                                                            <span className={styles.leadPhone}>{lead.phone}</span>
+                                                            <span className={styles.leadDate}>
+                                                                Última interação: {formatDate(lead.last_interaction_at)}
+                                                            </span>
+                                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                                                {processingIds.includes(lead.id) && (
+                                                                    <span style={{ padding: '2px 6px', background: '#dbeafe', borderRadius: '4px', fontSize: '0.75rem', color: '#2563eb', fontWeight: 'bold' }}>
+                                                                        ⏳ Enviando...
+                                                                    </span>
+                                                                )}
+                                                                {isPaused && (
+                                                                    <span className={styles.leadStatus}>
+                                                                        IA: {lead.ai_status}
+                                                                    </span>
+                                                                )}
+                                                                {lead.pipeline && (
+                                                                    <span style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.75rem', color: '#64748b' }}>
+                                                                        {lead.pipeline.title}
+                                                                    </span>
+                                                                )}
+                                                                {lead.manualOnly && (
+                                                                    <span style={{ padding: '2px 6px', background: '#fffbeb', borderRadius: '4px', fontSize: '0.75rem', color: '#b45309', border: '1px solid #fcd34d' }}>
+                                                                        ⚠️ Atrasado (Manual)
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className={styles.leadActions}>
+                                                            <span className={styles.followupCount}>
+                                                                {lead.followup_count || 0}/{filteredRules.length}
+                                                            </span>
+
+                                                            {isPaused ? (
+                                                                <button
+                                                                    className={styles.approveBtn}
+                                                                    onClick={() => handleApprove(lead.id)}
+                                                                    disabled={processingIds.includes(lead.id)}
+                                                                >
+                                                                    <Play size={14} />
+                                                                    Aprovar e Enviar
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    className={styles.sendBtn}
+                                                                    onClick={() => handleSendFollowup(lead.id)}
+                                                                    disabled={processingIds.includes(lead.id)}
+                                                                    title="Enviar Mensagem agora"
+                                                                >
+                                                                    <Send size={14} />
+                                                                    Enviar
+                                                                </button>
+                                                            )}
+
+                                                            <button
+                                                                className={styles.markSentBtn}
+                                                                onClick={() => handleMarkAsSent(lead.id)}
+                                                                disabled={processingIds.includes(lead.id)}
+                                                                title="Marcar como já enviado (não dispara mensagem)"
+                                                                style={{ marginLeft: '5px', background: 'none', border: '1px solid #ddd', color: '#666', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}
+                                                            >
+                                                                <CheckCircle size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
+                                );
+                            });
+                        })()}
                     </motion.div>
                     <motion.div
                         className={styles.leadsCard}
