@@ -145,15 +145,15 @@ export default function FollowUpPage() {
     };
 
     const [activeTab, setActiveTab] = useState('entrada'); // 'entrada' or 'proposta'
+    const [selectedLeads, setSelectedLeads] = useState([]);
+    const [sendingBulk, setSendingBulk] = useState(false);
 
-    // Filter rules based on active tab
-    const filteredRules = rules.filter(r => {
-        if (activeTab === 'proposta') {
-            return r.pipeline_id === propostaPipelineId;
-        }
-        return r.pipeline_id === entradaPipelineId;
-    });
+    // Reset selection when tab changes
+    useEffect(() => {
+        setSelectedLeads([]);
+    }, [activeTab]);
 
+    // ... filters ...
     // Filter leads based on active tab
     const filteredPendingLeads = pendingLeads.filter(l => {
         if (activeTab === 'proposta') {
@@ -167,6 +167,47 @@ export default function FollowUpPage() {
             return l.pipeline_id === propostaPipelineId;
         }
         return l.pipeline_id === entradaPipelineId;
+    });
+
+    const allTabLeads = [...filteredPendingLeads, ...filteredApprovalLeads];
+
+    const handleToggleSelect = (id) => {
+        setSelectedLeads(prev =>
+            prev.includes(id) ? prev.filter(l => l !== id) : [...prev, id]
+        );
+    };
+
+    const handleSelectAll = () => {
+        if (selectedLeads.length === allTabLeads.length) {
+            setSelectedLeads([]);
+        } else {
+            setSelectedLeads(allTabLeads.map(l => l.id));
+        }
+    };
+
+    const handleBulkSend = async () => {
+        if (selectedLeads.length === 0) return;
+        if (!confirm(`Deseja enviar follow-up para ${selectedLeads.length} leads selecionados?`)) return;
+
+        setSendingBulk(true);
+        try {
+            await followupService.bulkSend(selectedLeads);
+            alert('✅ Envio em massa iniciado com sucesso!');
+            setSelectedLeads([]);
+            loadLeads(); // Reload to update status
+        } catch (err) {
+            console.error('Error in bulk send:', err);
+            alert('❌ Erro ao enviar em massa');
+        } finally {
+            setSendingBulk(false);
+        }
+    };
+
+    const filteredRules = rules.filter(r => {
+        if (activeTab === 'proposta') {
+            return r.pipeline_id === propostaPipelineId;
+        }
+        return r.pipeline_id === entradaPipelineId;
     });
 
     // Format delay for display
@@ -603,9 +644,34 @@ export default function FollowUpPage() {
                         style={{ gridColumn: '1 / -1' }}
                     >
                         <div className={styles.cardHeader}>
-                            <AlertCircle size={20} />
-                            <h2>Leads Atrasados em {activeTab === 'entrada' ? 'Entrada / Primeiro Contato' : 'Proposta Enviada'}</h2>
-                            <span className={styles.badge}>{filteredPendingLeads.length + filteredApprovalLeads.length}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <AlertCircle size={20} />
+                                <h2>Leads Atrasados em {activeTab === 'entrada' ? 'Entrada' : 'Proposta'}</h2>
+                                <span className={styles.badge}>{allTabLeads.length}</span>
+                            </div>
+
+                            {allTabLeads.length > 0 && (
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button
+                                        onClick={handleSelectAll}
+                                        style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500 }}
+                                    >
+                                        {selectedLeads.length === allTabLeads.length ? 'Desmarcar Todos' : 'Selecionar Todos'}
+                                    </button>
+
+                                    {selectedLeads.length > 0 && (
+                                        <button
+                                            className={styles.runBtn}
+                                            onClick={handleBulkSend}
+                                            disabled={sendingBulk}
+                                            style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                                        >
+                                            {sendingBulk ? <RefreshCw className={styles.spin} size={14} /> : <Send size={14} />}
+                                            Disparar ({selectedLeads.length})
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         <p className={styles.cardDescription}>
                             Leads que ultrapassaram o tempo das regras configuradas e precisam de atenção (Automático ou Manual).
@@ -621,6 +687,14 @@ export default function FollowUpPage() {
                                 {/* Pending Leads (Auto/Manual Active) */}
                                 {filteredPendingLeads.map((lead) => (
                                     <div key={lead.id} className={styles.leadItem}>
+                                        <div style={{ marginRight: '10px' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedLeads.includes(lead.id)}
+                                                onChange={() => handleToggleSelect(lead.id)}
+                                                style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                                            />
+                                        </div>
                                         <div className={styles.leadInfo}>
                                             <span className={styles.leadName}>{lead.name}</span>
                                             <span className={styles.leadPhone}>{lead.phone}</span>
@@ -658,6 +732,14 @@ export default function FollowUpPage() {
                                 {/* Approval Leads (Paused AI) */}
                                 {filteredApprovalLeads.map((lead) => (
                                     <div key={lead.id} className={`${styles.leadItem} ${styles.leadItemWarning}`}>
+                                        <div style={{ marginRight: '10px' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedLeads.includes(lead.id)}
+                                                onChange={() => handleToggleSelect(lead.id)}
+                                                style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+                                            />
+                                        </div>
                                         <div className={styles.leadInfo}>
                                             <span className={styles.leadName}>{lead.name}</span>
                                             <span className={styles.leadPhone}>{lead.phone}</span>

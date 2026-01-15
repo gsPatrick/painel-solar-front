@@ -562,6 +562,11 @@ export const followupService = {
         return response.data;
     },
 
+    async bulkSend(leadIds) {
+        const response = await api.post('/followup/bulk-send', { leadIds });
+        return response.data;
+    },
+
     async getRules() {
         const response = await api.get('/followup/rules');
         return response.data;
