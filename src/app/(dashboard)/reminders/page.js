@@ -11,12 +11,13 @@ import {
     Edit2,
     Trash2,
     CheckCircle,
+    BellOff,
     Bell
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import TaskModal from '@/components/tasks/TaskModal/TaskModal';
 import { appointmentService, leadService } from '@/services/api';
-import styles from '../tasks/page.module.css';
+import styles from './page.module.css'; // Use new specific styles
 
 export default function RemindersPage() {
     // Data States
@@ -31,7 +32,7 @@ export default function RemindersPage() {
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 7;
+    const ITEMS_PER_PAGE = 10; // More items for table view
 
     // Modals
     const [showTaskModal, setShowTaskModal] = useState(false);
@@ -68,14 +69,19 @@ export default function RemindersPage() {
     const handleCreateTask = async (data) => {
         setModalLoading(true);
         try {
-            // Map Modal Data (Task format) to Appointment format
+            // Handle Notification logic
+            // If data.notify === 'none', we manually set reminded flags to true so cron skips them
+            const suppress = data.notify === 'none';
+
             const payload = {
                 title: data.title,
                 description: data.description,
                 lead_id: data.lead_id || null,
-                date_time: data.due_date, // Map due_date -> date_time
+                date_time: data.due_date,
                 type: 'LEMBRETE',
-                status: 'scheduled'
+                status: 'scheduled',
+                reminded_1day: suppress,  // Set to true if suppressed
+                reminded_2hours: suppress // Set to true if suppressed
             };
 
             if (editingTask) {
@@ -138,7 +144,7 @@ export default function RemindersPage() {
 
             // 3. Date Filter
             if (dateFilter !== 'all') {
-                const due = new Date(task.date_time); // Use date_time
+                const due = new Date(task.date_time);
                 due.setHours(0, 0, 0, 0);
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
@@ -169,16 +175,21 @@ export default function RemindersPage() {
 
     // --- Helper UI ---
 
-    const formatDate = (dateString) => {
+    const formatDateTime = (dateString) => {
+        if (!dateString) return '-';
         const d = new Date(dateString);
-        return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        return d.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
     const isLate = (task) => {
         if (task.status === 'completed') return false;
         const due = new Date(task.date_time);
         const now = new Date();
-        now.setHours(0, 0, 0, 0);
         return due < now;
     };
 
@@ -188,7 +199,23 @@ export default function RemindersPage() {
             <div className={styles.container}>
                 {/* Actions Toolbar */}
                 <div className={styles.header}>
-                    <div />
+                    <div className={styles.headerActions}>
+                        <div className={styles.filterTabs}>
+                            <button
+                                className={`${styles.filterTab} ${statusFilter === 'scheduled' ? styles.active : ''}`}
+                                onClick={() => setStatusFilter('scheduled')}
+                            >
+                                Pendentes
+                            </button>
+                            <button
+                                className={`${styles.filterTab} ${statusFilter === 'completed' ? styles.active : ''}`}
+                                onClick={() => setStatusFilter('completed')}
+                            >
+                                Concluídos
+                            </button>
+                        </div>
+                    </div>
+
                     <button
                         className={styles.btnNew}
                         onClick={() => {
@@ -213,133 +240,136 @@ export default function RemindersPage() {
                         />
                     </div>
 
-                    <div className={styles.filterGroups}>
-                        <div className={styles.filterGroup}>
-                            <button
-                                className={`${styles.filterBtn} ${statusFilter === 'scheduled' ? styles.active : ''}`}
-                                onClick={() => setStatusFilter('scheduled')}
-                            >
-                                Pendentes
-                            </button>
-                            <button
-                                className={`${styles.filterBtn} ${statusFilter === 'completed' ? styles.active : ''}`}
-                                onClick={() => setStatusFilter('completed')}
-                            >
-                                Concluídos
-                            </button>
-                        </div>
-
-                        <div className={styles.filterGroup}>
-                            <button
-                                className={`${styles.filterBtn} ${dateFilter === 'all' ? styles.active : ''}`}
-                                onClick={() => setDateFilter('all')}
-                            >
-                                Todos
-                            </button>
-                            <button
-                                className={`${styles.filterBtn} ${dateFilter === 'overdue' ? styles.active : ''}`}
-                                onClick={() => { setDateFilter('overdue'); setStatusFilter('scheduled'); }}
-                                style={{ color: dateFilter === 'overdue' ? '#DC2626' : undefined }}
-                            >
-                                Atrasados
-                            </button>
-                            <button
-                                className={`${styles.filterBtn} ${dateFilter === 'today' ? styles.active : ''}`}
-                                onClick={() => setDateFilter('today')}
-                            >
-                                Hoje
-                            </button>
-                        </div>
+                    <div className={styles.filterTabs}>
+                        <button
+                            className={`${styles.filterTab} ${dateFilter === 'all' ? styles.active : ''}`}
+                            onClick={() => setDateFilter('all')}
+                        >
+                            Todos
+                        </button>
+                        <button
+                            className={`${styles.filterTab} ${dateFilter === 'overdue' ? styles.active : ''}`}
+                            onClick={() => { setDateFilter('overdue'); setStatusFilter('scheduled'); }}
+                            style={{ color: dateFilter === 'overdue' ? '#DC2626' : undefined }}
+                        >
+                            Atrasados
+                        </button>
+                        <button
+                            className={`${styles.filterTab} ${dateFilter === 'today' ? styles.active : ''}`}
+                            onClick={() => setDateFilter('today')}
+                        >
+                            Hoje
+                        </button>
                     </div>
                 </div>
 
-                {/* Task Grid */}
-                <div className={styles.taskGrid}>
-                    <AnimatePresence mode='wait'>
-                        {paginatedTasks.length > 0 ? (
-                            paginatedTasks.map(task => {
-                                const late = isLate(task);
-                                const statusClass = task.status === 'completed' ? 'status-done' : late ? 'status-late' : 'status-pending';
+                {/* Table View */}
+                <div className={styles.tableContainer}>
+                    <table className={styles.table}>
+                        <thead>
+                            <tr className={styles.tr}>
+                                <th className={styles.th}>Título / Descrição</th>
+                                <th className={styles.th}>Data & Hora</th>
+                                <th className={styles.th}>Lead</th>
+                                <th className={styles.th}>Status</th>
+                                <th className={styles.th} style={{ textAlign: 'right' }}>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <AnimatePresence mode='wait'>
+                                {paginatedTasks.length > 0 ? (
+                                    paginatedTasks.map(task => {
+                                        const late = isLate(task);
+                                        const statusBadgeClass = task.status === 'completed' ? styles.badgeCompleted : late ? styles.badgeLate : styles.badgePending;
+                                        const statusLabel = task.status === 'completed' ? 'Concluído' : late ? 'Atrasado' : 'Pendente';
 
-                                return (
-                                    <motion.div
-                                        key={task.id}
-                                        className={`${styles.taskCard} ${styles[statusClass]}`}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                    >
-                                        <div className={styles.cardLeftBorder}></div>
-
-                                        <div className={styles.cardHeader}>
-                                            <h3 className={styles.taskTitle}>{task.title || 'Sem título'}</h3>
-                                            <span className={`${styles.statusBadge} ${styles[statusClass]}`}>
-                                                {task.status === 'completed' ? 'Concluído' : late ? 'Atrasado' : 'Pendente'}
-                                            </span>
-                                        </div>
-
-                                        <div className={styles.cardBody}>
-                                            {task.description && (
-                                                <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '8px' }}>
-                                                    {task.description}
-                                                </p>
-                                            )}
-                                            {task.lead && (
-                                                <div className={styles.infoRow}>
-                                                    <User size={14} className={styles.icon} />
-                                                    <span className={styles.leadName}>{task.lead.name}</span>
-                                                </div>
-                                            )}
-                                            <div className={styles.infoRow}>
-                                                <Calendar size={14} className={styles.icon} />
-                                                <span>{formatDate(task.date_time)}</span>
-                                                {task.date_time && <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>({new Date(task.date_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})</span>}
-                                            </div>
-                                        </div>
-
-                                        <div className={styles.cardFooter}>
-                                            <button
-                                                className={`${styles.actionBtn} ${task.status === 'completed' ? styles.btnComplete : ''}`}
-                                                title={task.status === 'completed' ? "Reabrir" : "Concluir"}
-                                                onClick={(e) => { e.stopPropagation(); handleCompleteTask(task); }}
+                                        return (
+                                            <motion.tr
+                                                key={task.id}
+                                                className={styles.tr}
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                layout
                                             >
-                                                {task.status === 'completed' ? <CheckCircle size={18} /> : <Check size={18} />}
-                                            </button>
-                                            <button
-                                                className={styles.actionBtn}
-                                                title="Editar"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setEditingTask({
-                                                        ...task,
-                                                        due_date: task.date_time, // Map date_time -> due_date for modal
-                                                        status: task.status === 'completed' ? 'done' : 'pending'
-                                                    });
-                                                    setShowTaskModal(true);
-                                                }}
-                                            >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button
-                                                className={styles.actionBtn}
-                                                title="Excluir"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteTask(task.id);
-                                                }}
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                );
-                            })
-                        ) : (
-                            <div className={styles.emptyState}>
-                                <p>Nenhum lembrete encontrado.</p>
-                            </div>
-                        )}
-                    </AnimatePresence>
+                                                <td className={styles.td}>
+                                                    <div style={{ fontWeight: 500, color: '#0F172A' }}>
+                                                        {task.title || 'Sem título'}
+                                                    </div>
+                                                    {task.description && (
+                                                        <div style={{ fontSize: '12px', color: '#64748B', marginTop: 2, maxWidth: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                            {task.description}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className={styles.td}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                        <Calendar size={14} color="#64748B" />
+                                                        {formatDateTime(task.date_time)}
+                                                    </div>
+                                                </td>
+                                                <td className={styles.td}>
+                                                    {task.lead ? (
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                            <User size={14} color="#64748B" />
+                                                            {task.lead.name}
+                                                        </div>
+                                                    ) : (
+                                                        <span style={{ color: '#94A3B8' }}>-</span>
+                                                    )}
+                                                </td>
+                                                <td className={styles.td}>
+                                                    <span className={`${styles.badge} ${statusBadgeClass}`}>
+                                                        {statusLabel}
+                                                    </span>
+                                                    {(task.reminded_1day && task.reminded_2hours) && (
+                                                        <BellOff size={12} color="#94A3B8" style={{ marginLeft: 6 }} title="Notificações desativadas" />
+                                                    )}
+                                                </td>
+                                                <td className={styles.td} style={{ textAlign: 'right' }}>
+                                                    <button
+                                                        className={`${styles.actionBtn} ${task.status === 'completed' ? '' : styles.btnComplete}`}
+                                                        title={task.status === 'completed' ? "Reabrir" : "Concluir"}
+                                                        onClick={() => handleCompleteTask(task)}
+                                                    >
+                                                        {task.status === 'completed' ? <CheckCircle size={18} /> : <Check size={18} />}
+                                                    </button>
+                                                    <button
+                                                        className={styles.actionBtn}
+                                                        title="Editar"
+                                                        onClick={() => {
+                                                            setEditingTask({
+                                                                ...task,
+                                                                // Convert ISO back to simpler string if needed, or let Modal handle ISO
+                                                                // Modal handles ISO if valid.
+                                                                notify: (task.reminded_1day && task.reminded_2hours) ? 'none' : 'normal'
+                                                            });
+                                                            setShowTaskModal(true);
+                                                        }}
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        className={`${styles.actionBtn} ${styles.btnDelete}`}
+                                                        title="Excluir"
+                                                        onClick={() => handleDeleteTask(task.id)}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </td>
+                                            </motion.tr>
+                                        );
+                                    })
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className={styles.emptyState}>
+                                            {loading ? 'Carregando...' : 'Nenhum lembrete encontrado.'}
+                                        </td>
+                                    </tr>
+                                )}
+                            </AnimatePresence>
+                        </tbody>
+                    </table>
                 </div>
 
                 {/* Pagination Controls */}
@@ -365,7 +395,6 @@ export default function RemindersPage() {
                     </div>
                 )}
 
-                {/* Task Modal - reusing with forced type logic */}
                 <TaskModal
                     isOpen={showTaskModal}
                     onClose={() => { setShowTaskModal(false); setEditingTask(null); }}
@@ -373,6 +402,7 @@ export default function RemindersPage() {
                     task={editingTask}
                     leads={leads}
                     loading={modalLoading}
+                    forcedType="LEMBRETE" // Force specific type logic
                 />
             </div>
         </>
