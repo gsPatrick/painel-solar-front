@@ -51,7 +51,7 @@ export default function FollowUpPage() {
     const [rules, setRules] = useState([]);
     const [expandedPipelines, setExpandedPipelines] = useState({});
     const [newRuleValues, setNewRuleValues] = useState({}); // { [pipelineId]: { delay: 24, message: '' } }
-    const [selectedPipelineId, setSelectedPipelineId] = useState('');
+
     const [entradaPipelineId, setEntradaPipelineId] = useState(null);
     const [propostaPipelineId, setPropostaPipelineId] = useState(null);
 
@@ -142,25 +142,37 @@ export default function FollowUpPage() {
         }
     };
 
-    // Filter rules by selected pipeline
-    const filteredRules = rules.filter(r => r.pipeline_id === selectedPipelineId);
+    const [activeTab, setActiveTab] = useState('entrada'); // 'entrada' or 'proposta'
 
-    // Filter leads by selected pipeline
-    const filteredPendingLeads = pendingLeads.filter(l => l.pipeline_id === selectedPipelineId);
-    const filteredApprovalLeads = approvalLeads.filter(l => l.pipeline_id === selectedPipelineId);
+    // Filter rules based on active tab
+    const filteredRules = rules.filter(r => {
+        if (activeTab === 'proposta') {
+            return r.pipeline_id === propostaPipelineId;
+        }
+        return r.pipeline_id === entradaPipelineId;
+    });
 
-    // Format delay for display
-    const formatDelay = (hours) => {
-        if (hours < 1) return `${Math.round(hours * 60)} min`;
-        if (hours < 24) return `${hours}h`;
-        const days = hours / 24;
-        return `${days} dia${days > 1 ? 's' : ''}`;
-    };
+    // Filter leads based on active tab
+    const filteredPendingLeads = pendingLeads.filter(l => {
+        if (activeTab === 'proposta') {
+            return l.pipeline_id === propostaPipelineId;
+        }
+        return l.pipeline_id === entradaPipelineId;
+    });
 
-    // Add rule for selected pipeline
+    const filteredApprovalLeads = approvalLeads.filter(l => {
+        if (activeTab === 'proposta') {
+            return l.pipeline_id === propostaPipelineId;
+        }
+        return l.pipeline_id === entradaPipelineId;
+    });
+
+    // Add rule for current tab
     const handleAddRule = async () => {
-        if (!selectedPipelineId) {
-            alert('Por favor, selecione uma Etapa do Funil primeiro.');
+        const targetPipelineId = activeTab === 'proposta' ? propostaPipelineId : entradaPipelineId;
+
+        if (!targetPipelineId) {
+            alert(`Erro: Pipeline de ${activeTab === 'proposta' ? 'Proposta' : 'Entrada'} não encontrado.`);
             return;
         }
 
@@ -174,13 +186,12 @@ export default function FollowUpPage() {
             delayHours = delayHours * 24;
         }
 
-        // Calculate next step number for this pipeline
-        const pipelineRules = rules.filter(r => r.pipeline_id === selectedPipelineId);
+        const pipelineRules = rules.filter(r => r.pipeline_id === targetPipelineId);
         const nextStep = pipelineRules.length + 1;
 
         try {
             const newRule = await followupService.createRule({
-                pipeline_id: selectedPipelineId,
+                pipeline_id: targetPipelineId,
                 step_number: nextStep,
                 delay_hours: delayHours,
                 message_template: values.message || `Olá {nome}, tudo bem?`
@@ -419,36 +430,40 @@ export default function FollowUpPage() {
                             <h2>Régua de Follow-up Automático</h2>
                         </div>
 
-                        {/* Pipeline Selector */}
-                        <div style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, color: '#334155' }}>
-                                Selecione a Etapa do Funil para Configurar (Regra):
-                            </label>
-                            <select
-                                className={styles.select}
-                                value={selectedPipelineId}
-                                onChange={(e) => setSelectedPipelineId(e.target.value)}
-                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                        {/* Tabs for Entrada and Proposta */}
+                        <div className={styles.followupTabs}>
+                            <button
+                                className={`${styles.followupTab} ${activeTab === 'entrada' ? styles.active : ''}`}
+                                onClick={() => setActiveTab('entrada')}
                             >
-                                <option value="">-- Selecione uma Etapa --</option>
-                                {pipelines.map(p => (
-                                    <option key={p.id} value={p.id}>{p.title}</option>
-                                ))}
-                            </select>
+                                📥 Leads de Entrada / Primeiro Contato
+                            </button>
+                            <button
+                                className={`${styles.followupTab} ${activeTab === 'proposta' ? styles.active : ''}`}
+                                onClick={() => setActiveTab('proposta')}
+                            >
+                                📋 Proposta Enviada
+                            </button>
                         </div>
 
                         {/* Info Box */}
                         <div className={styles.followupInfo}>
-                            {selectedPipelineId ? (
+                            {activeTab === 'entrada' ? (
                                 <>
-                                    <strong>⚙️ Configurando: {pipelines.find(p => p.id === selectedPipelineId)?.title}</strong>
-                                    <p>Configure mensagens automáticas para leads que estão nesta etapa.</p>
+                                    <strong>📥 Leads de Entrada / Primeiro Contato</strong>
+                                    <p>Mensagens para leads novos que não respondem. As regras aqui se aplicam ao funil de Entrada.</p>
                                     <p style={{ marginTop: '8px', fontSize: '0.85rem', color: '#666' }}>
-                                        💡 <strong>Dica:</strong> Para "Proposta Enviada", tente um follow-up de 30 minutos!
+                                        💡 <strong>Dica:</strong> Configure um follow-up curto (ex: 1h) e outro longo (24h).
                                     </p>
                                 </>
                             ) : (
-                                <p>👈 Selecione uma etapa acima para visualizar ou criar regras.</p>
+                                <>
+                                    <strong>📋 Proposta Enviada</strong>
+                                    <p>Mensagens para leads que receberam proposta mas não interagiram.</p>
+                                    <p style={{ marginTop: '8px', fontSize: '0.85rem', color: '#666' }}>
+                                        💡 <strong>Dica:</strong> Uma mensagem de <strong>30 minutos</strong> ("Viu a proposta?") aumenta muito a conversão!
+                                    </p>
+                                </>
                             )}
                         </div>
 
@@ -495,7 +510,7 @@ export default function FollowUpPage() {
                             ) : (
                                 <div className={styles.emptyRules}>
                                     <AlertCircle size={32} />
-                                    <p>Nenhuma regra configurada para esta etapa.</p>
+                                    <p>Nenhuma regra configurada para {activeTab === 'entrada' ? 'Entrada' : 'Proposta Enviada'}.</p>
                                     <p>Adicione uma nova regra abaixo! 👇</p>
                                 </div>
                             )}
@@ -568,26 +583,32 @@ export default function FollowUpPage() {
                 </div>
 
                 {/* Leads pendentes */}
+                {/* Unified Leads Section */}
                 <div className={styles.leadsSection}>
                     <motion.div
                         className={styles.leadsCard}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
+                        style={{ gridColumn: '1 / -1' }}
                     >
                         <div className={styles.cardHeader}>
-                            <Clock size={20} />
-                            <h2>Leads Aguardando Follow-up</h2>
-                            <span className={styles.badge}>{filteredPendingLeads.length}</span>
+                            <AlertCircle size={20} />
+                            <h2>Leads Atrasados em {activeTab === 'entrada' ? 'Entrada / Primeiro Contato' : 'Proposta Enviada'}</h2>
+                            <span className={styles.badge}>{filteredPendingLeads.length + filteredApprovalLeads.length}</span>
                         </div>
+                        <p className={styles.cardDescription}>
+                            Leads que ultrapassaram o tempo das regras configuradas e precisam de atenção (Automático ou Manual).
+                        </p>
 
-                        {filteredPendingLeads.length === 0 ? (
+                        {(filteredPendingLeads.length === 0 && filteredApprovalLeads.length === 0) ? (
                             <div className={styles.emptyState}>
                                 <CheckCircle size={32} />
-                                <p>Nenhum lead aguardando follow-up</p>
+                                <p>Tudo em dia! Nenhum lead atrasado nesta etapa.</p>
                             </div>
                         ) : (
                             <div className={styles.leadsList}>
+                                {/* Pending Leads (Auto/Manual Active) */}
                                 {filteredPendingLeads.map((lead) => (
                                     <div key={lead.id} className={styles.leadItem}>
                                         <div className={styles.leadInfo}>
@@ -596,20 +617,18 @@ export default function FollowUpPage() {
                                             <span className={styles.leadDate}>
                                                 Última interação: {formatDate(lead.last_interaction_at)}
                                             </span>
-                                            {lead.pipeline && (
-                                                <span style={{
-                                                    display: 'inline-block',
-                                                    padding: '2px 6px',
-                                                    background: '#f1f5f9',
-                                                    borderRadius: '4px',
-                                                    fontSize: '0.75rem',
-                                                    color: '#64748b',
-                                                    marginTop: '4px',
-                                                    width: 'fit-content'
-                                                }}>
-                                                    {lead.pipeline.title}
-                                                </span>
-                                            )}
+                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                                {lead.pipeline && (
+                                                    <span style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.75rem', color: '#64748b' }}>
+                                                        {lead.pipeline.title}
+                                                    </span>
+                                                )}
+                                                {lead.manualOnly && (
+                                                    <span style={{ padding: '2px 6px', background: '#fffbeb', borderRadius: '4px', fontSize: '0.75rem', color: '#b45309', border: '1px solid #fcd34d' }}>
+                                                        ⚠️ Atrasado (Manual)
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className={styles.leadActions}>
                                             <span className={styles.followupCount}>
@@ -625,55 +644,23 @@ export default function FollowUpPage() {
                                         </div>
                                     </div>
                                 ))}
-                            </div>
-                        )}
-                    </motion.div>
 
-                    <motion.div
-                        className={styles.leadsCard}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                    >
-                        <div className={styles.cardHeader}>
-                            <Pause size={20} />
-                            <h2>Aguardando Aprovação</h2>
-                            <span className={`${styles.badge} ${styles.badgeWarning}`}>{filteredApprovalLeads.length}</span>
-                        </div>
-                        <p className={styles.cardDescription}>
-                            Leads com IA pausada que precisam de follow-up.
-                        </p>
-
-                        {filteredApprovalLeads.length === 0 ? (
-                            <div className={styles.emptyState}>
-                                <CheckCircle size={32} />
-                                <p>Nenhum lead aguardando aprovação nesta etapa</p>
-                            </div>
-                        ) : (
-                            <div className={styles.leadsList}>
+                                {/* Approval Leads (Paused AI) */}
                                 {filteredApprovalLeads.map((lead) => (
                                     <div key={lead.id} className={`${styles.leadItem} ${styles.leadItemWarning}`}>
                                         <div className={styles.leadInfo}>
                                             <span className={styles.leadName}>{lead.name}</span>
                                             <span className={styles.leadPhone}>{lead.phone}</span>
-                                            <span className={styles.leadStatus}>
-                                                IA: {lead.ai_status}
-                                            </span>
-                                            {lead.pipeline && (
-                                                <span style={{
-                                                    display: 'inline-block',
-                                                    padding: '2px 6px',
-                                                    background: '#fff7ed',
-                                                    borderRadius: '4px',
-                                                    fontSize: '0.75rem',
-                                                    color: '#c2410c',
-                                                    marginTop: '4px',
-                                                    width: 'fit-content',
-                                                    border: '1px solid #fed7aa'
-                                                }}>
-                                                    {lead.pipeline.title}
+                                            <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                                <span className={styles.leadStatus}>
+                                                    IA: {lead.ai_status}
                                                 </span>
-                                            )}
+                                                {lead.pipeline && (
+                                                    <span style={{ padding: '2px 6px', background: '#fff7ed', borderRadius: '4px', fontSize: '0.75rem', color: '#c2410c', border: '1px solid #fed7aa' }}>
+                                                        {lead.pipeline.title}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className={styles.leadActions}>
                                             <button
