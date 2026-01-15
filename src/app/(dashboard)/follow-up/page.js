@@ -642,7 +642,7 @@ export default function FollowUpPage() {
                                         </div>
                                         <div className={styles.leadActions}>
                                             <span className={styles.followupCount}>
-                                                {lead.followup_count || 0}/{maxFollowups}
+                                                {lead.followup_count || 0}/{filteredRules.length}
                                             </span>
                                             <button
                                                 className={styles.sendBtn}
