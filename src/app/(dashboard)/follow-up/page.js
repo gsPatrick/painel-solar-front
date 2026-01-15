@@ -132,6 +132,8 @@ export default function FollowUpPage() {
                 p.title.toLowerCase().includes('primeiro contato')
             );
             const propostaPipeline = fetchedPipelines.find(p =>
+                p.title.toLowerCase().includes('proposta enviada')
+            ) || fetchedPipelines.find(p =>
                 p.title.toLowerCase().includes('proposta')
             );
 
