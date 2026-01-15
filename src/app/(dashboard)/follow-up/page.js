@@ -192,12 +192,13 @@ export default function FollowUpPage() {
         setSendingBulk(true);
         try {
             await followupService.bulkSend(selectedLeads);
-            alert('✅ Envio em massa iniciado com sucesso!');
+            alert('✅ Disparo em massa iniciado! O sistema enviará as mensagens em segundo plano (intervalo de 5-10s).');
             setSelectedLeads([]);
-            loadLeads(); // Reload to update status
+            // Don't reload immediately as it runs in background. 
+            // Ideally we would poll, but for now just clear selection.
         } catch (err) {
             console.error('Error in bulk send:', err);
-            alert('❌ Erro ao enviar em massa');
+            alert('❌ Erro ao iniciar disparo em massa');
         } finally {
             setSendingBulk(false);
         }
