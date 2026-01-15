@@ -167,6 +167,14 @@ export default function FollowUpPage() {
         return l.pipeline_id === entradaPipelineId;
     });
 
+    // Format delay for display
+    const formatDelay = (hours) => {
+        if (hours < 1) return `${Math.round(hours * 60)} min`;
+        if (hours < 24) return `${hours}h`;
+        const days = hours / 24;
+        return `${days} dia${days > 1 ? 's' : ''}`;
+    };
+
     // Add rule for current tab
     const handleAddRule = async () => {
         const targetPipelineId = activeTab === 'proposta' ? propostaPipelineId : entradaPipelineId;
