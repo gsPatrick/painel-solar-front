@@ -1,0 +1,228 @@
+.container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.headerActions {
+    display: flex;
+    gap: 12px;
+}
+
+.btnNew {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #0F172A;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btnNew:hover {
+    background-color: #334155;
+}
+
+/* Filters */
+.filtersContainer {
+    display: flex;
+    gap: 16px;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.searchWrapper {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94A3B8;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 10px 12px 10px 40px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    outline: none;
+    font-size: 14px;
+}
+
+.filterTabs {
+    display: flex;
+    gap: 4px;
+    background: #F1F5F9;
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.filterTab {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748B;
+    transition: all 0.2s;
+}
+
+.filterTab.active {
+    background: white;
+    color: #0F172A;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Table Styles */
+.tableContainer {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.th {
+    text-align: left;
+    padding: 16px 24px;
+    background: #F8FAFC;
+    color: #64748B;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.td {
+    padding: 16px 24px;
+    border-bottom: 1px solid #F1F5F9;
+    color: #334155;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.tr:last-child .td {
+    border-bottom: none;
+}
+
+.tr:hover {
+    background-color: #F8FAFC;
+}
+
+/* Status Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badgeLate {
+    background: #FEF2F2;
+    color: #DC2626;
+}
+
+.badgePending {
+    background: #EFF6FF;
+    color: #3B82F6;
+}
+
+.badgeCompleted {
+    background: #F0FDF4;
+    color: #16A34A;
+}
+
+/* Actions */
+.actionBtn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #94A3B8;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    margin-right: 4px;
+}
+
+.actionBtn:hover {
+    background: #F1F5F9;
+    color: #334155;
+}
+
+.btnComplete {
+    color: #16A34A;
+}
+
+.btnComplete:hover {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.btnDelete:hover {
+    background: #FEF2F2;
+    color: #DC2626;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.pageBtn {
+    padding: 8px 16px;
+    border: 1px solid #E2E8F0;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.pageBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pageInfo {
+    font-size: 14px;
+    color: #64748B;
+}
+
+.emptyState {
+    padding: 48px;
+    text-align: center;
+    color: #94A3B8;
+}
