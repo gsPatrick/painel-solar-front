@@ -26,8 +26,8 @@ export default function RemindersPage() {
     const [loading, setLoading] = useState(true);
 
     // Filters
-    const [statusFilter, setStatusFilter] = useState('scheduled'); // 'scheduled', 'completed'
-    const [dateFilter, setDateFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('scheduled'); // Default to pending
+    const [dateFilter, setDateFilter] = useState('all'); // Show all future/past pending by default
     const [searchQuery, setSearchQuery] = useState('');
 
     // Pagination
@@ -51,10 +51,13 @@ export default function RemindersPage() {
     const loadData = async () => {
         setLoading(true);
         try {
+            console.log("Fetching reminders...");
+            // Fetch ALL reminders (both scheduled and completed) to handle filtering client-side
             const [fetchedAppointments, fetchedLeads] = await Promise.all([
                 appointmentService.getAll({ type: 'LEMBRETE' }),
                 leadService.getAll()
             ]);
+            console.log("Reminders fetched:", fetchedAppointments);
             setTasks(fetchedAppointments || []);
             setLeads(fetchedLeads || []);
         } catch (error) {
