@@ -120,6 +120,15 @@ export default function KanbanPage() {
             });
         });
 
+        // Listen for lead deletion
+        socketRef.current.on('lead_deleted', ({ id }) => {
+            console.log('[Kanban] Lead deleted:', id);
+            setPipelines(prev => prev.map(p => ({
+                ...p,
+                leads: p.leads?.filter(l => l.id !== id) || []
+            })));
+        });
+
         // Listen for AI pause notifications (log only, no modal)
         socketRef.current.on('ai_paused_notification', (data) => {
             console.log(`[Kanban] IA Pausada: ${data.leadName}`);
