@@ -10,17 +10,15 @@ import {
     Calendar,
     Edit2,
     Trash2,
-    Clock,
-    Filter,
-    CheckCircle
+    CheckCircle,
+    Bell
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import TaskModal from '@/components/tasks/TaskModal/TaskModal';
-import LeadModal from '@/components/leads/LeadModal/LeadModal';
-import { taskService, leadService, appointmentService } from '@/services/api';
-import styles from './page.module.css';
+import { taskService, leadService } from '@/services/api';
+import styles from '../tasks/page.module.css'; // Reuse tasks styles
 
-export default function TasksPage() {
+export default function RemindersPage() {
     // Data States
     const [tasks, setTasks] = useState([]);
     const [leads, setLeads] = useState([]);
@@ -28,7 +26,7 @@ export default function TasksPage() {
 
     // Filters
     const [statusFilter, setStatusFilter] = useState('pending'); // 'pending', 'done'
-    const [dateFilter, setDateFilter] = useState('all'); // 'all', 'today', 'tomorrow', 'overdue', 'week'
+    const [dateFilter, setDateFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
 
     // Pagination
@@ -37,7 +35,6 @@ export default function TasksPage() {
 
     // Modals
     const [showTaskModal, setShowTaskModal] = useState(false);
-    const [showLeadModal, setShowLeadModal] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
     const [modalLoading, setModalLoading] = useState(false);
 
@@ -57,10 +54,13 @@ export default function TasksPage() {
                 taskService.getAll(),
                 leadService.getAll()
             ]);
-            setTasks(fetchedTasks || []);
+            // Client-side filtering for Reminders type
+            // Ideally backend should filter, but for now we filter here
+            const reminders = (fetchedTasks || []).filter(t => t.type === 'REMINDER');
+            setTasks(reminders);
             setLeads(fetchedLeads || []);
         } catch (error) {
-            console.error("Error loading tasks:", error);
+            console.error("Error loading reminders:", error);
         } finally {
             setLoading(false);
         }
@@ -71,25 +71,26 @@ export default function TasksPage() {
     const handleCreateTask = async (data) => {
         setModalLoading(true);
         try {
+            const payload = { ...data, type: 'REMINDER' }; // Force type
             if (editingTask) {
-                const updated = await taskService.update(editingTask.id, data);
+                const updated = await taskService.update(editingTask.id, payload);
                 setTasks(prev => prev.map(t => t.id === updated.id ? updated : t));
                 setEditingTask(null);
             } else {
-                const newT = await taskService.create(data);
+                const newT = await taskService.create(payload);
                 setTasks(prev => [newT, ...prev]);
             }
             setShowTaskModal(false);
         } catch (error) {
             console.error(error);
-            alert("Erro ao salvar tarefa");
+            alert("Erro ao salvar lembrete");
         } finally {
             setModalLoading(false);
         }
     };
 
     const handleDeleteTask = async (id) => {
-        if (!confirm('Excluir esta tarefa?')) return;
+        if (!confirm('Excluir este lembrete?')) return;
         try {
             await taskService.delete(id);
             setTasks(prev => prev.filter(t => t.id !== id));
@@ -145,16 +146,12 @@ export default function TasksPage() {
                 } else if (dateFilter === 'overdue') {
                     if (task.status !== 'done' && due < today) return true;
                     return false;
-                } else if (dateFilter === 'week') {
-                    const nextWeek = new Date(today);
-                    nextWeek.setDate(today.getDate() + 7);
-                    if (due < today || due > nextWeek) return false;
                 }
             }
 
             return true;
         })
-            .sort((a, b) => new Date(a.due_date) - new Date(b.due_date)); // Sort by date ascending
+            .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
     };
 
     const filteredTasks = getFilteredTasks();
@@ -169,7 +166,6 @@ export default function TasksPage() {
     const formatDate = (dateString) => {
         const d = new Date(dateString);
         return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-        // e.g. "12 jan"
     };
 
     const isLate = (task) => {
@@ -182,42 +178,36 @@ export default function TasksPage() {
 
     return (
         <>
-            <Header title="Minhas Tarefas" />
+            <Header title="Meus Lembretes" />
             <div className={styles.container}>
                 {/* Actions Toolbar */}
                 <div className={styles.header}>
-                    <div /> {/* Spacer to push button to right if needed, or just let justify-between work */}
+                    <div />
                     <button
                         className={styles.btnNew}
                         onClick={() => {
-                            if (leads.length === 0) setShowLeadModal(true);
-                            else {
-                                setEditingTask(null);
-                                setShowTaskModal(true);
-                            }
+                            setEditingTask(null);
+                            setShowTaskModal(true);
                         }}
                     >
                         <Plus size={20} />
-                        Nova Tarefa
+                        Novo Lembrete
                     </button>
                 </div>
 
                 {/* Filter Bar */}
                 <div className={styles.filtersContainer}>
-                    {/* Search */}
                     <div className={styles.searchWrapper}>
                         <Search className={styles.searchIcon} size={18} />
                         <input
                             className={styles.searchInput}
-                            placeholder="🔍 Buscar tarefa ou cliente..."
+                            placeholder="🔍 Buscar lembrete..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                         />
                     </div>
 
-                    {/* Filter Groups */}
                     <div className={styles.filterGroups}>
-                        {/* Status Toggle */}
                         <div className={styles.filterGroup}>
                             <button
                                 className={`${styles.filterBtn} ${statusFilter === 'pending' ? styles.active : ''}`}
@@ -229,36 +219,29 @@ export default function TasksPage() {
                                 className={`${styles.filterBtn} ${statusFilter === 'done' ? styles.active : ''}`}
                                 onClick={() => setStatusFilter('done')}
                             >
-                                Concluídas
+                                Concluídos
                             </button>
                         </div>
 
-                        {/* Date Filters */}
                         <div className={styles.filterGroup}>
                             <button
                                 className={`${styles.filterBtn} ${dateFilter === 'all' ? styles.active : ''}`}
                                 onClick={() => setDateFilter('all')}
                             >
-                                Todas
+                                Todos
                             </button>
                             <button
                                 className={`${styles.filterBtn} ${dateFilter === 'overdue' ? styles.active : ''}`}
                                 onClick={() => { setDateFilter('overdue'); setStatusFilter('pending'); }}
                                 style={{ color: dateFilter === 'overdue' ? '#DC2626' : undefined }}
                             >
-                                Atrasadas
+                                Atrasados
                             </button>
                             <button
                                 className={`${styles.filterBtn} ${dateFilter === 'today' ? styles.active : ''}`}
                                 onClick={() => setDateFilter('today')}
                             >
                                 Hoje
-                            </button>
-                            <button
-                                className={`${styles.filterBtn} ${dateFilter === 'tomorrow' ? styles.active : ''}`}
-                                onClick={() => setDateFilter('tomorrow')}
-                            >
-                                Amanhã
                             </button>
                         </div>
                     </div>
@@ -271,27 +254,30 @@ export default function TasksPage() {
                             paginatedTasks.map(task => {
                                 const late = isLate(task);
                                 const statusClass = task.status === 'done' ? 'status-done' : late ? 'status-late' : 'status-pending';
-                                const priorityClass = late ? 'priority-high' : 'priority-normal'; // Simplify priority logic to visual urgency
 
                                 return (
                                     <motion.div
                                         key={task.id}
-                                        className={`${styles.taskCard} ${styles[statusClass]} ${styles[priorityClass]}`}
+                                        className={`${styles.taskCard} ${styles[statusClass]}`}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.95 }}
-                                        onClick={() => setEditingTask(task)} // Click card to view/edit? No, seperate edit button is safer
                                     >
                                         <div className={styles.cardLeftBorder}></div>
 
                                         <div className={styles.cardHeader}>
                                             <h3 className={styles.taskTitle}>{task.title}</h3>
                                             <span className={`${styles.statusBadge} ${styles[statusClass]}`}>
-                                                {task.status === 'done' ? 'Concluída' : late ? 'Atrasada' : 'Pendente'}
+                                                {task.status === 'done' ? 'Concluído' : late ? 'Atrasado' : 'Pendente'}
                                             </span>
                                         </div>
 
                                         <div className={styles.cardBody}>
+                                            {task.description && (
+                                                <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '8px' }}>
+                                                    {task.description}
+                                                </p>
+                                            )}
                                             {task.lead && (
                                                 <div className={styles.infoRow}>
                                                     <User size={14} className={styles.icon} />
@@ -340,7 +326,7 @@ export default function TasksPage() {
                             })
                         ) : (
                             <div className={styles.emptyState}>
-                                <p>Nenhuma tarefa encontrada com esses filtros.</p>
+                                <p>Nenhum lembrete encontrado.</p>
                             </div>
                         )}
                     </AnimatePresence>
@@ -369,7 +355,7 @@ export default function TasksPage() {
                     </div>
                 )}
 
-                {/* Task Modal */}
+                {/* Task Modal - reusing with forced type logic */}
                 <TaskModal
                     isOpen={showTaskModal}
                     onClose={() => { setShowTaskModal(false); setEditingTask(null); }}
@@ -377,18 +363,7 @@ export default function TasksPage() {
                     task={editingTask}
                     leads={leads}
                     loading={modalLoading}
-                />
-
-                {/* Lead Modal (Quick Create) */}
-                <LeadModal
-                    isOpen={showLeadModal}
-                    onClose={() => setShowLeadModal(false)}
-                    onSubmit={async (data) => {
-                        const newLead = await leadService.create(data);
-                        setLeads(prev => [newLead, ...prev]);
-                        setShowLeadModal(false);
-                        setShowTaskModal(true);
-                    }}
+                // We need to update TaskModal to handle forcedType if we want to hide the selector
                 />
             </div>
         </>
