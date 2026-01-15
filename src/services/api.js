@@ -545,6 +545,16 @@ export const followupService = {
         return response.data;
     },
 
+    async markAsSent(leadId) {
+        const response = await api.post(`/followup/mark-sent/${leadId}`);
+        return response.data;
+    },
+
+    async bulkMarkAsSent(leadIds) {
+        const response = await api.post('/followup/bulk-mark-sent', { leadIds });
+        return response.data;
+    },
+
     async approve(leadId) {
         const response = await api.post(`/followup/approve/${leadId}`);
         return response.data;

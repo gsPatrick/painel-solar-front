@@ -147,10 +147,12 @@ export default function FollowUpPage() {
     const [activeTab, setActiveTab] = useState('entrada'); // 'entrada' or 'proposta'
     const [selectedLeads, setSelectedLeads] = useState([]);
     const [sendingBulk, setSendingBulk] = useState(false);
+    const [processingIds, setProcessingIds] = useState([]);
 
-    // Reset selection when tab changes
+    // Reset selection and processing state when tab changes
     useEffect(() => {
         setSelectedLeads([]);
+        setProcessingIds([]);
     }, [activeTab]);
 
     // ... filters ...
@@ -190,17 +192,32 @@ export default function FollowUpPage() {
         if (!confirm(`Deseja enviar follow-up para ${selectedLeads.length} leads selecionados?`)) return;
 
         setSendingBulk(true);
+        // Optimistically mark these as processing
+        setProcessingIds(prev => [...prev, ...selectedLeads]);
+
         try {
             await followupService.bulkSend(selectedLeads);
             alert('✅ Disparo em massa iniciado! O sistema enviará as mensagens em segundo plano (intervalo de 5-10s).');
             setSelectedLeads([]);
-            // Don't reload immediately as it runs in background. 
-            // Ideally we would poll, but for now just clear selection.
+            // processingIds remain set so user sees "Enviando..." until they refresh or leads clear
         } catch (err) {
             console.error('Error in bulk send:', err);
             alert('❌ Erro ao iniciar disparo em massa');
+            setProcessingIds([]); // Clear on error
         } finally {
             setSendingBulk(false);
+        }
+    };
+
+    const handleMarkAsSent = async (leadId) => {
+        if (!confirm('Marcar este follow-up como já enviado? (Nenhuma mensagem será enviada)')) return;
+        try {
+            await followupService.markAsSent(leadId);
+            // Remove from list locally for instant feedback
+            setPendingLeads(prev => prev.filter(l => l.id !== leadId));
+            setApprovalLeads(prev => prev.filter(l => l.id !== leadId));
+        } catch (err) {
+            alert('Erro ao marcar como enviado');
         }
     };
 
@@ -210,6 +227,20 @@ export default function FollowUpPage() {
         }
         return r.pipeline_id === entradaPipelineId;
     });
+
+    const handleBulkMarkAsSent = async () => {
+        if (!confirm(`Marcar ${selectedLeads.length} leads como ENVIADOS? (Nenhuma mensagem será enviada)`)) return;
+
+        try {
+            await followupService.bulkMarkAsSent(selectedLeads);
+            alert('✅ Leads marcados como enviados!');
+            setSelectedLeads([]);
+            loadLeads();
+        } catch (err) {
+            console.error('Error:', err);
+            alert('Erro ao marcar em massa.');
+        }
+    };
 
     // Format delay for display
     const formatDelay = (hours) => {
@@ -651,6 +682,8 @@ export default function FollowUpPage() {
                                 <span className={styles.badge}>{allTabLeads.length}</span>
                             </div>
 
+
+
                             {allTabLeads.length > 0 && (
                                 <div style={{ display: 'flex', gap: '10px' }}>
                                     <button
@@ -661,15 +694,37 @@ export default function FollowUpPage() {
                                     </button>
 
                                     {selectedLeads.length > 0 && (
-                                        <button
-                                            className={styles.runBtn}
-                                            onClick={handleBulkSend}
-                                            disabled={sendingBulk}
-                                            style={{ padding: '6px 12px', fontSize: '0.85rem' }}
-                                        >
-                                            {sendingBulk ? <RefreshCw className={styles.spin} size={14} /> : <Send size={14} />}
-                                            Disparar ({selectedLeads.length})
-                                        </button>
+                                        <>
+                                            <button
+                                                className={styles.runBtn}
+                                                onClick={handleBulkSend}
+                                                disabled={sendingBulk}
+                                                style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                                            >
+                                                {sendingBulk ? <RefreshCw className={styles.spin} size={14} /> : <Send size={14} />}
+                                                Disparar ({selectedLeads.length})
+                                            </button>
+
+                                            <button
+                                                onClick={handleBulkMarkAsSent}
+                                                disabled={sendingBulk}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    fontSize: '0.85rem',
+                                                    background: '#fff',
+                                                    border: '1px solid #ddd',
+                                                    borderRadius: '6px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    color: '#666'
+                                                }}
+                                            >
+                                                <CheckCircle size={14} />
+                                                Marcar ({selectedLeads.length}) Enviados
+                                            </button>
+                                        </>
                                     )}
                                 </div>
                             )}
@@ -693,6 +748,7 @@ export default function FollowUpPage() {
                                                 type="checkbox"
                                                 checked={selectedLeads.includes(lead.id)}
                                                 onChange={() => handleToggleSelect(lead.id)}
+                                                disabled={processingIds.includes(lead.id)}
                                                 style={{ cursor: 'pointer', width: '16px', height: '16px' }}
                                             />
                                         </div>
@@ -703,6 +759,11 @@ export default function FollowUpPage() {
                                                 Última interação: {formatDate(lead.last_interaction_at)}
                                             </span>
                                             <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                                {processingIds.includes(lead.id) && (
+                                                    <span style={{ padding: '2px 6px', background: '#dbeafe', borderRadius: '4px', fontSize: '0.75rem', color: '#2563eb', fontWeight: 'bold' }}>
+                                                        ⏳ Enviando...
+                                                    </span>
+                                                )}
                                                 {lead.pipeline && (
                                                     <span style={{ padding: '2px 6px', background: '#f1f5f9', borderRadius: '4px', fontSize: '0.75rem', color: '#64748b' }}>
                                                         {lead.pipeline.title}
@@ -719,12 +780,25 @@ export default function FollowUpPage() {
                                             <span className={styles.followupCount}>
                                                 {lead.followup_count || 0}/{filteredRules.length}
                                             </span>
+
                                             <button
                                                 className={styles.sendBtn}
                                                 onClick={() => handleSendFollowup(lead.id)}
+                                                disabled={processingIds.includes(lead.id)}
+                                                title="Enviar Mensagem agora"
                                             >
                                                 <Send size={14} />
                                                 Enviar
+                                            </button>
+
+                                            <button
+                                                className={styles.markSentBtn}
+                                                onClick={() => handleMarkAsSent(lead.id)}
+                                                disabled={processingIds.includes(lead.id)}
+                                                title="Marcar como já enviado (não dispara mensagem)"
+                                                style={{ marginLeft: '5px', background: 'none', border: '1px solid #ddd', color: '#666', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}
+                                            >
+                                                <CheckCircle size={14} />
                                             </button>
                                         </div>
                                     </div>
@@ -738,6 +812,7 @@ export default function FollowUpPage() {
                                                 type="checkbox"
                                                 checked={selectedLeads.includes(lead.id)}
                                                 onChange={() => handleToggleSelect(lead.id)}
+                                                disabled={processingIds.includes(lead.id)}
                                                 style={{ cursor: 'pointer', width: '16px', height: '16px' }}
                                             />
                                         </div>
@@ -745,6 +820,11 @@ export default function FollowUpPage() {
                                             <span className={styles.leadName}>{lead.name}</span>
                                             <span className={styles.leadPhone}>{lead.phone}</span>
                                             <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                                                {processingIds.includes(lead.id) && (
+                                                    <span style={{ padding: '2px 6px', background: '#dbeafe', borderRadius: '4px', fontSize: '0.75rem', color: '#2563eb', fontWeight: 'bold' }}>
+                                                        ⏳ Enviando...
+                                                    </span>
+                                                )}
                                                 <span className={styles.leadStatus}>
                                                     IA: {lead.ai_status}
                                                 </span>
@@ -759,9 +839,20 @@ export default function FollowUpPage() {
                                             <button
                                                 className={styles.approveBtn}
                                                 onClick={() => handleApprove(lead.id)}
+                                                disabled={processingIds.includes(lead.id)}
                                             >
                                                 <Play size={14} />
                                                 Aprovar e Enviar
+                                            </button>
+
+                                            <button
+                                                className={styles.markSentBtn}
+                                                onClick={() => handleMarkAsSent(lead.id)}
+                                                disabled={processingIds.includes(lead.id)}
+                                                title="Marcar como já enviado"
+                                                style={{ marginLeft: '5px', background: 'none', border: '1px solid #fbbf24', color: '#b45309', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}
+                                            >
+                                                <CheckCircle size={14} />
                                             </button>
                                         </div>
                                     </div>
