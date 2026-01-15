@@ -51,7 +51,7 @@ export default function FollowUpPage() {
     const [rules, setRules] = useState([]);
     const [expandedPipelines, setExpandedPipelines] = useState({});
     const [newRuleValues, setNewRuleValues] = useState({}); // { [pipelineId]: { delay: 24, message: '' } }
-    const [showPropostaRules, setShowPropostaRules] = useState(false);
+    const [selectedPipelineId, setSelectedPipelineId] = useState('');
     const [entradaPipelineId, setEntradaPipelineId] = useState(null);
     const [propostaPipelineId, setPropostaPipelineId] = useState(null);
 
@@ -142,30 +142,12 @@ export default function FollowUpPage() {
         }
     };
 
-    // Filter rules by current tab
-    const filteredRules = rules.filter(r => {
-        if (showPropostaRules) {
-            return r.pipeline_id === propostaPipelineId;
-        }
-        return r.pipeline_id === entradaPipelineId;
-    });
+    // Filter rules by selected pipeline
+    const filteredRules = rules.filter(r => r.pipeline_id === selectedPipelineId);
 
-    // Filter leads by current tab
-    const filterLeadsByTab = (leadsList) => {
-        return leadsList.filter(l => {
-            if (showPropostaRules) {
-                return l.pipeline_id === propostaPipelineId;
-            }
-            // Match Entrada ID or fallback to "not Proposta" if strictly binary? 
-            // Better to match Entrada EXACTLY to avoid confusing other pipelines.
-            // But valid leads might be in "Qualificação".
-            // For now, match entradaPipelineId exactly.
-            return l.pipeline_id === entradaPipelineId;
-        });
-    };
-
-    const filteredPendingLeads = filterLeadsByTab(pendingLeads);
-    const filteredApprovalLeads = filterLeadsByTab(approvalLeads);
+    // Filter leads by selected pipeline
+    const filteredPendingLeads = pendingLeads.filter(l => l.pipeline_id === selectedPipelineId);
+    const filteredApprovalLeads = approvalLeads.filter(l => l.pipeline_id === selectedPipelineId);
 
     // Format delay for display
     const formatDelay = (hours) => {
@@ -175,11 +157,10 @@ export default function FollowUpPage() {
         return `${days} dia${days > 1 ? 's' : ''}`;
     };
 
-    // Add rule for specific type
-    const handleAddRuleForType = async (type) => {
-        const pipelineId = type === 'proposta' ? propostaPipelineId : entradaPipelineId;
-        if (!pipelineId) {
-            alert(`Erro: Pipeline de ${type === 'proposta' ? 'Proposta Enviada' : 'Entrada'} não encontrado.`);
+    // Add rule for selected pipeline
+    const handleAddRule = async () => {
+        if (!selectedPipelineId) {
+            alert('Por favor, selecione uma Etapa do Funil primeiro.');
             return;
         }
 
@@ -194,12 +175,12 @@ export default function FollowUpPage() {
         }
 
         // Calculate next step number for this pipeline
-        const pipelineRules = rules.filter(r => r.pipeline_id === pipelineId);
+        const pipelineRules = rules.filter(r => r.pipeline_id === selectedPipelineId);
         const nextStep = pipelineRules.length + 1;
 
         try {
             const newRule = await followupService.createRule({
-                pipeline_id: pipelineId,
+                pipeline_id: selectedPipelineId,
                 step_number: nextStep,
                 delay_hours: delayHours,
                 message_template: values.message || `Olá {nome}, tudo bem?`
@@ -245,37 +226,7 @@ export default function FollowUpPage() {
         setExpandedPipelines(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
-    const handleAddRule = async (pipelineId, valuesKey = null) => {
-        const key = valuesKey || pipelineId;
-        const values = newRuleValues[key] || { delayValue: 1, delayUnit: 'hours', message: '' };
 
-        // Convert to hours (backend expects hours)
-        let delayHours = Number(values.delayValue || 1);
-        if (values.delayUnit === 'minutes') {
-            delayHours = delayHours / 60; // Convert minutes to hours
-        }
-
-        // Calculate next step number
-        const nextStep = rules.length + 1;
-
-        try {
-            const newRule = await followupService.createRule({
-                pipeline_id: pipelineId,
-                step_number: nextStep,
-                delay_hours: delayHours,
-                message_template: values.message || `Olá {nome}, tudo bem?`
-            });
-
-            setRules([...rules, newRule]);
-            setNewRuleValues(prev => ({
-                ...prev,
-                [key]: { delayValue: '', delayUnit: 'hours', message: '' }
-            }));
-        } catch (err) {
-            console.error('Error creating rule:', err);
-            alert('Erro ao criar regra: ' + (err.response?.data?.error || err.message));
-        }
-    };
 
     const handleDeleteRule = async (id) => {
         if (!confirm('Tem certeza que deseja excluir esta regra?')) return;
@@ -468,42 +419,36 @@ export default function FollowUpPage() {
                             <h2>Régua de Follow-up Automático</h2>
                         </div>
 
-                        {/* Tabs for Entrada and Proposta */}
-                        <div className={styles.followupTabs}>
-                            <button
-                                className={`${styles.followupTab} ${!showPropostaRules ? styles.active : ''}`}
-                                onClick={() => setShowPropostaRules(false)}
+                        {/* Pipeline Selector */}
+                        <div style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, color: '#334155' }}>
+                                Selecione a Etapa do Funil para Configurar (Regra):
+                            </label>
+                            <select
+                                className={styles.select}
+                                value={selectedPipelineId}
+                                onChange={(e) => setSelectedPipelineId(e.target.value)}
+                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                             >
-                                📥 Leads de Entrada / Primeiro Contato
-                            </button>
-                            <button
-                                className={`${styles.followupTab} ${showPropostaRules ? styles.active : ''}`}
-                                onClick={() => setShowPropostaRules(true)}
-                            >
-                                📋 Proposta Enviada
-                            </button>
+                                <option value="">-- Selecione uma Etapa --</option>
+                                {pipelines.map(p => (
+                                    <option key={p.id} value={p.id}>{p.title}</option>
+                                ))}
+                            </select>
                         </div>
 
                         {/* Info Box */}
                         <div className={styles.followupInfo}>
-                            {!showPropostaRules ? (
+                            {selectedPipelineId ? (
                                 <>
-                                    <strong>📥 Leads de Entrada / Primeiro Contato</strong>
-                                    <p>Mensagens enviadas automaticamente quando o lead <strong>não responde</strong> às mensagens iniciais da IA.</p>
-                                    <p>O follow-up para quando o lead <strong>responder qualquer mensagem</strong>.</p>
+                                    <strong>⚙️ Configurando: {pipelines.find(p => p.id === selectedPipelineId)?.title}</strong>
+                                    <p>Configure mensagens automáticas para leads que estão nesta etapa.</p>
                                     <p style={{ marginTop: '8px', fontSize: '0.85rem', color: '#666' }}>
-                                        💡 <strong>Dica:</strong> Comece com intervalos curtos (1h, 3h) e depois mais longos (24h, 48h, 72h).
+                                        💡 <strong>Dica:</strong> Para "Proposta Enviada", tente um follow-up de 30 minutos!
                                     </p>
                                 </>
                             ) : (
-                                <>
-                                    <strong>📋 Proposta Enviada</strong>
-                                    <p>Mensagens enviadas automaticamente quando o lead recebe a proposta e <strong>não interage</strong>.</p>
-                                    <p>Use mensagens mais suaves para não parecer cobrança. O objetivo é agendar uma visita técnica.</p>
-                                    <p style={{ marginTop: '8px', fontSize: '0.85rem', color: '#666' }}>
-                                        💡 <strong>Dica:</strong> Intervalos mais longos aqui (24h, 3 dias, 7 dias).
-                                    </p>
-                                </>
+                                <p>👈 Selecione uma etapa acima para visualizar ou criar regras.</p>
                             )}
                         </div>
 
@@ -550,7 +495,7 @@ export default function FollowUpPage() {
                             ) : (
                                 <div className={styles.emptyRules}>
                                     <AlertCircle size={32} />
-                                    <p>Nenhuma regra configurada para {showPropostaRules ? 'Proposta Enviada' : 'Entrada'}.</p>
+                                    <p>Nenhuma regra configurada para esta etapa.</p>
                                     <p>Adicione uma nova regra abaixo! 👇</p>
                                 </div>
                             )}
@@ -599,7 +544,7 @@ export default function FollowUpPage() {
                                 </div>
 
                                 <button
-                                    onClick={() => handleAddRuleForType(showPropostaRules ? 'proposta' : 'entrada')}
+                                    onClick={handleAddRule}
                                     className={styles.addRuleButton}
                                 >
                                     <Plus size={20} />
