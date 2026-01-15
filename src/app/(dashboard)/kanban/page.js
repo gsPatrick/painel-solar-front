@@ -617,9 +617,14 @@ export default function KanbanPage() {
                                 <div className={styles.modalFooter}>
                                     <button
                                         className={`${styles.btn} ${styles.btnDanger}`}
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Stop propagation
+                                            const leadToDelete = { ...selectedLead }; // Copy lead
                                             setShowDetailModal(false);
-                                            setDeleteLead(selectedLead);
+                                            // Small timeout to allow modal to start closing before opening confirm
+                                            setTimeout(() => {
+                                                setDeleteLead(leadToDelete);
+                                            }, 100);
                                         }}
                                     >
                                         <Trash2 size={16} />
