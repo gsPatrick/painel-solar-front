@@ -158,8 +158,10 @@
     background: var(--color-bg-card);
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
+    overflow: hidden;
     /* Enable scroll */
+    position: relative;
+    /* Context for children */
     transition: background var(--transition-fast);
 }
 
@@ -214,8 +216,11 @@
 
 .events {
     display: flex;
+    flex-direction: column;
     gap: 4px;
     flex: 1;
+    overflow-y: auto;
+    /* Allow scrolling for events container if needed within the cell */
 }
 
 .event {
@@ -231,6 +236,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex-shrink: 0;
+    /* Prevent shrinking when list is long */
+    min-height: 28px;
+    /* Ensure consistent height */
+    margin-right: 2px;
+    /* Avoid scrollbar overlap visually */
 }
 
 .event:hover {
@@ -380,6 +391,8 @@
     }
 
     .events {
+        display: flex;
+        flex-direction: row;
         overflow-x: auto;
         padding-bottom: 4px;
         width: 100%;
