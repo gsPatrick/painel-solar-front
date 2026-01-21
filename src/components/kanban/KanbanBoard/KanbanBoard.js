@@ -22,6 +22,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Plus } from 'lucide-react';
 import Column from '../Column/Column';
 import LeadCard from '../LeadCard/LeadCard';
+import { authService } from '@/services/api';
 import styles from './KanbanBoard.module.css';
 
 // Wrapper for Sortable Column
@@ -207,9 +208,12 @@ export default function KanbanBoard({
     // Sortable items for columns
     const pipelineIds = pipelines.map(p => p.id);
 
+    const user = authService.getStoredUser();
+    const isViewer = user?.role === 'viewer';
+
     return (
         <DndContext
-            sensors={sensors}
+            sensors={isViewer ? [] : sensors}
             collisionDetection={closestCorners}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
@@ -223,18 +227,20 @@ export default function KanbanBoard({
                             pipeline={pipeline}
                             leads={pipeline.leads || []}
                             onLeadClick={onLeadClick}
-                            onAddLead={onAddLead}
-                            onEditColumn={onEditColumn}
-                            onDeleteColumn={onDeleteColumn}
+                            onAddLead={!isViewer ? onAddLead : undefined}
+                            onEditColumn={!isViewer ? onEditColumn : undefined}
+                            onDeleteColumn={!isViewer ? onDeleteColumn : undefined}
                             onRecoveryAction={onRecoveryAction}
                         />
                     ))}
                 </SortableContext>
 
-                <button className={styles.addColumn} onClick={onAddColumn}>
-                    <Plus size={20} />
-                    Adicionar Coluna
-                </button>
+                {!isViewer && (
+                    <button className={styles.addColumn} onClick={onAddColumn}>
+                        <Plus size={20} />
+                        Adicionar Coluna
+                    </button>
+                )}
             </div>
 
             <DragOverlay dropAnimation={dropAnimation}>

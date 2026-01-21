@@ -24,7 +24,7 @@ import {
     Shield,
     Megaphone
 } from 'lucide-react';
-import { settingsService } from '@/services/api';
+import { settingsService, authService } from '@/services/api';
 import { useNotification } from '@/contexts/NotificationContext';
 import { useSidebar } from '@/contexts/SidebarContext';
 import styles from './Sidebar.module.css';
@@ -171,32 +171,54 @@ export default function Sidebar() {
                 </div>
 
                 <nav className={styles.nav}>
-                    {navItems.map((section) => (
-                        <div key={section.section} className={styles.navSection}>
-                            <span className={styles.navLabel}>{section.section}</span>
-                            <div className={styles.navItems}>
-                                {section.items.map((item) => {
-                                    const Icon = item.icon;
-                                    const isActive = pathname === item.href;
-                                    const badge = getBadge(item.label);
+                    {navItems.map((section) => {
+                        // Filter items based on user role
+                        const user = authService.getStoredUser();
+                        const isViewer = user?.role === 'viewer';
 
-                                    return (
-                                        <Link
-                                            key={item.href}
-                                            href={item.href}
-                                            className={`${styles.navLink} ${isActive ? styles.active : ''}`}
-                                        >
-                                            <Icon className={styles.navIcon} />
-                                            {item.label}
-                                            {badge && (
-                                                <span className={styles.navBadge}>{badge}</span>
-                                            )}
-                                        </Link>
-                                    );
-                                })}
+                        const filteredItems = section.items.filter(item => {
+                            if (!isViewer) return true; // Show all for admins/sales
+
+                            // Hide specific items for Viewer
+                            const hiddenForViewer = [
+                                'Configurações',
+                                'Backup & Segurança',
+                                'Disparos em Massa',
+                                'Financeiro',
+                                'Integrações'
+                            ];
+                            return !hiddenForViewer.includes(item.label);
+                        });
+
+                        if (filteredItems.length === 0) return null;
+
+                        return (
+                            <div key={section.section} className={styles.navSection}>
+                                <span className={styles.navLabel}>{section.section}</span>
+                                <div className={styles.navItems}>
+                                    {filteredItems.map((item) => {
+                                        const Icon = item.icon;
+                                        const isActive = pathname === item.href;
+                                        const badge = getBadge(item.label);
+
+                                        return (
+                                            <Link
+                                                key={item.href}
+                                                href={item.href}
+                                                className={`${styles.navLink} ${isActive ? styles.active : ''}`}
+                                            >
+                                                <Icon className={styles.navIcon} />
+                                                {item.label}
+                                                {badge && (
+                                                    <span className={styles.navBadge}>{badge}</span>
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </nav>
 
                 {/* Monthly Goal Card */}

@@ -99,23 +99,31 @@ export default function Column({
                     onPointerDown={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                 >
-                    <button className={styles.actionBtn} onClick={() => onAddLead?.(pipeline)}>
-                        <Plus size={16} />
-                    </button>
-                    <button className={styles.actionBtn} onClick={() => setShowMenu(!showMenu)}>
-                        <MoreHorizontal size={16} />
-                    </button>
+                    {onAddLead && (
+                        <button className={styles.actionBtn} onClick={() => onAddLead(pipeline)}>
+                            <Plus size={16} />
+                        </button>
+                    )}
+                    {(onEditColumn || onDeleteColumn) && (
+                        <button className={styles.actionBtn} onClick={() => setShowMenu(!showMenu)}>
+                            <MoreHorizontal size={16} />
+                        </button>
+                    )}
 
                     {showMenu && (
                         <div className={styles.dropdown}>
-                            <button className={styles.dropdownItem} onClick={handleEdit}>
-                                <Edit2 size={14} />
-                                Editar Funil
-                            </button>
-                            <button className={`${styles.dropdownItem} ${styles.danger}`} onClick={handleDelete}>
-                                <Trash2 size={14} />
-                                Excluir Funil
-                            </button>
+                            {onEditColumn && (
+                                <button className={styles.dropdownItem} onClick={handleEdit}>
+                                    <Edit2 size={14} />
+                                    Editar Funil
+                                </button>
+                            )}
+                            {onDeleteColumn && (
+                                <button className={`${styles.dropdownItem} ${styles.danger}`} onClick={handleDelete}>
+                                    <Trash2 size={14} />
+                                    Excluir Funil
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
@@ -138,6 +146,7 @@ export default function Column({
                             <button
                                 className={styles.addButton}
                                 onClick={() => onAddLead?.(pipeline)}
+                                style={{ display: onAddLead ? 'flex' : 'none' }}
                             >
                                 <Plus size={16} />
                                 Adicionar Lead
@@ -157,10 +166,10 @@ export default function Column({
                         </AnimatePresence>
                     )}
 
-                    {leads.length > 0 && (
+                    {leads.length > 0 && onAddLead && (
                         <button
                             className={styles.addButton}
-                            onClick={() => onAddLead?.(pipeline)}
+                            onClick={() => onAddLead(pipeline)}
                         >
                             <Plus size={16} />
                             Adicionar Lead
