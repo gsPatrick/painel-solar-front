@@ -16,6 +16,7 @@ import {
     Zap
 } from 'lucide-react';
 import clsx from 'clsx';
+import { authService } from '@/services/api';
 import styles from './LeadCard.module.css';
 
 const LeadCard = forwardRef(({ lead, pipeline, onRecoveryAction, onClick, isDragging, loading = false }, ref) => {
@@ -252,7 +253,7 @@ const LeadCard = forwardRef(({ lead, pipeline, onRecoveryAction, onClick, isDrag
             {...listeners}
         >
             {/* Data Recovery Action Button (Only in Primeiro Contato) */}
-            {pipeline?.title?.toLowerCase().includes('primeiro contato') && (
+            {pipeline?.title?.toLowerCase().includes('primeiro contato') && authService.getStoredUser()?.role !== 'viewer' && (
                 <div
                     className={styles.actionButton}
                     title="Enviar Script de Recuperação"

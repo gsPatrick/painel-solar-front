@@ -29,7 +29,7 @@ import {
     FileText
 } from 'lucide-react';
 import { io } from 'socket.io-client';
-import { pipelineService, leadService, messageService } from '@/services/api';
+import { pipelineService, leadService, messageService, authService } from '@/services/api';
 import KanbanBoard from '@/components/kanban/KanbanBoard/KanbanBoard';
 import LeadModal from '@/components/leads/LeadModal/LeadModal';
 import PipelineModal from '@/components/pipeline/PipelineModal/PipelineModal';
@@ -38,6 +38,9 @@ import styles from './page.module.css';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://geral-painelsolar-sistema.r954jc.easypanel.host';
 
 export default function MessagesPage() {
+    const user = authService.getStoredUser();
+    const isViewer = user?.role === 'viewer';
+
     const router = useRouter();
     const messagesEndRef = useRef(null);
     const dividerRef = useRef(null);
@@ -739,29 +742,31 @@ export default function MessagesPage() {
                                             </div>
                                         </div>
                                     </div>
-                                    <button
-                                        className={styles.aiToggleBtn}
-                                        onClick={handleToggleAi}
-                                        disabled={togglingAi}
-                                        title={selectedLead.ai_status !== 'active' ? "Reativar IA (Sol)" : "Pausar IA (Sol)"}
-                                        style={{
-                                            backgroundColor: selectedLead.ai_status !== 'active' ? '#EF4444' : '#10B981',
-                                            color: 'white',
-                                            padding: '6px 12px',
-                                            borderRadius: '20px',
-                                            border: 'none',
-                                            fontSize: '0.75rem',
-                                            fontWeight: '600',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            cursor: 'pointer',
-                                            marginRight: '10px'
-                                        }}
-                                    >
-                                        <Bot size={16} />
-                                        {togglingAi ? '...' : selectedLead.ai_status !== 'active' ? 'IA Pausada' : 'IA Ativa'}
-                                    </button>
+                                    {!isViewer && (
+                                        <button
+                                            className={styles.aiToggleBtn}
+                                            onClick={handleToggleAi}
+                                            disabled={togglingAi}
+                                            title={selectedLead.ai_status !== 'active' ? "Reativar IA (Sol)" : "Pausar IA (Sol)"}
+                                            style={{
+                                                backgroundColor: selectedLead.ai_status !== 'active' ? '#EF4444' : '#10B981',
+                                                color: 'white',
+                                                padding: '6px 12px',
+                                                borderRadius: '20px',
+                                                border: 'none',
+                                                fontSize: '0.75rem',
+                                                fontWeight: '600',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                cursor: 'pointer',
+                                                marginRight: '10px'
+                                            }}
+                                        >
+                                            <Bot size={16} />
+                                            {togglingAi ? '...' : selectedLead.ai_status !== 'active' ? 'IA Pausada' : 'IA Ativa'}
+                                        </button>
+                                    )}
                                     <button className={styles.moreBtn}>
                                         <MoreVertical size={20} />
                                     </button>
@@ -811,28 +816,30 @@ export default function MessagesPage() {
 
                                 {/* Input Area with Media Buttons */}
                                 <div className={styles.inputArea}>
-                                    <div className={styles.attachBtn}>
-                                        <button onClick={() => setShowAttachMenu(!showAttachMenu)}>
-                                            <Paperclip size={20} />
-                                        </button>
+                                    {!isViewer && (
+                                        <div className={styles.attachBtn}>
+                                            <button onClick={() => setShowAttachMenu(!showAttachMenu)}>
+                                                <Paperclip size={20} />
+                                            </button>
 
-                                        {showAttachMenu && (
-                                            <div className={styles.attachMenu}>
-                                                <button onClick={() => handleFileSelect('image')}>
-                                                    <Image size={20} color="#10B981" />
-                                                    <span>Imagem</span>
-                                                </button>
-                                                <button onClick={() => handleFileSelect('video')}>
-                                                    <Video size={20} color="#3B82F6" />
-                                                    <span>Vídeo</span>
-                                                </button>
-                                                <button onClick={() => handleFileSelect('document')}>
-                                                    <FileText size={20} color="#F59E0B" />
-                                                    <span>Documento</span>
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
+                                            {showAttachMenu && (
+                                                <div className={styles.attachMenu}>
+                                                    <button onClick={() => handleFileSelect('image')}>
+                                                        <Image size={20} color="#10B981" />
+                                                        <span>Imagem</span>
+                                                    </button>
+                                                    <button onClick={() => handleFileSelect('video')}>
+                                                        <Video size={20} color="#3B82F6" />
+                                                        <span>Vídeo</span>
+                                                    </button>
+                                                    <button onClick={() => handleFileSelect('document')}>
+                                                        <FileText size={20} color="#F59E0B" />
+                                                        <span>Documento</span>
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
 
                                     {isRecording ? (
                                         <div className={styles.recordingArea} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '10px', padding: '0 10px' }}>
@@ -852,13 +859,13 @@ export default function MessagesPage() {
                                         <>
                                             <input
                                                 type="text"
-                                                placeholder="Digite uma mensagem..."
+                                                placeholder={isViewer ? "Modo apenas consulta" : "Digite uma mensagem..."}
                                                 value={messageInput}
                                                 onChange={(e) => setMessageInput(e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                                                disabled={sending}
+                                                disabled={sending || isViewer}
                                             />
-                                            {messageInput.trim() || attachmentFile ? (
+                                            {!isViewer && (messageInput.trim() || attachmentFile) && (
                                                 <button
                                                     className={styles.sendBtn}
                                                     onClick={handleSendMessage}
@@ -866,7 +873,7 @@ export default function MessagesPage() {
                                                 >
                                                     <Send size={20} />
                                                 </button>
-                                            ) : null}
+                                            )}
                                         </>
                                     )}
                                 </div>
@@ -901,10 +908,12 @@ export default function MessagesPage() {
                             <button className={styles.refreshBtn} onClick={loadData}>
                                 <RefreshCw size={16} />
                             </button>
-                            <button className={styles.addBtn} onClick={() => setShowLeadModal(true)}>
-                                <Plus size={16} />
-                                Novo Lead
-                            </button>
+                            {!isViewer && (
+                                <button className={styles.addBtn} onClick={() => setShowLeadModal(true)}>
+                                    <Plus size={16} />
+                                    Novo Lead
+                                </button>
+                            )}
                         </div>
                     </div>
 

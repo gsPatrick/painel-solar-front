@@ -20,12 +20,15 @@ import TaskModal from '@/components/tasks/TaskModal/TaskModal';
 import DayDetailsModal from '@/components/agenda/DayDetailsModal/DayDetailsModal';
 import LeadModal from '@/components/leads/LeadModal/LeadModal';
 import AppointmentDetailsModal from '@/components/appointments/AppointmentDetailsModal/AppointmentDetailsModal';
-import { appointmentService, leadService } from '@/services/api';
+import { appointmentService, leadService, authService } from '@/services/api';
 import styles from './page.module.css';
 
 // ... (code)
 
 export default function AgendaPage() {
+    const user = authService.getStoredUser();
+    const isViewer = user?.role === 'viewer';
+
     const router = useRouter();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [appointments, setAppointments] = useState([]);
@@ -289,13 +292,15 @@ export default function AgendaPage() {
                         <button className={styles.btn} onClick={goToToday}>
                             Hoje
                         </button>
-                        <button
-                            className={`${styles.btn} ${styles.btnPrimary}`}
-                            onClick={() => setShowModal(true)}
-                        >
-                            <Plus size={16} />
-                            Novo Agendamento
-                        </button>
+                        {!isViewer && (
+                            <button
+                                className={`${styles.btn} ${styles.btnPrimary}`}
+                                onClick={() => setShowModal(true)}
+                            >
+                                <Plus size={16} />
+                                Novo Agendamento
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -359,8 +364,8 @@ export default function AgendaPage() {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: index * 0.01 }}
-                                    onClick={() => handleDayClick(date)}
-                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => !isViewer && handleDayClick(date)}
+                                    style={{ cursor: isViewer ? 'default' : 'pointer' }}
                                 >
                                     <span
                                         className={styles.dayNumber}

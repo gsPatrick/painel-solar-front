@@ -13,11 +13,14 @@ import {
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import { useTheme } from '@/contexts/ThemeContext';
-import { settingsService } from '@/services/api';
+import { settingsService, authService } from '@/services/api';
 import api from '@/services/api';
 import styles from './page.module.css';
 
 export default function SettingsPage() {
+    const user = authService.getStoredUser();
+    const isViewer = user?.role === 'viewer';
+
     const {
         settings: globalSettings,
         updateSettings
@@ -554,25 +557,27 @@ export default function SettingsPage() {
                     </div>
                 </motion.div>
 
-                <div className={styles.actions}>
-                    <button
-                        className={`${styles.btn} ${styles.btnPrimary}`}
-                        onClick={handleSave}
-                        disabled={loading}
-                    >
-                        {loading ? 'Salvando...' : saved ? (
-                            <>
-                                <Check size={16} />
-                                Salvo!
-                            </>
-                        ) : (
-                            <>
-                                <Save size={16} />
-                                Salvar Alterações
-                            </>
-                        )}
-                    </button>
-                </div>
+                {!isViewer && (
+                    <div className={styles.actions}>
+                        <button
+                            className={`${styles.btn} ${styles.btnPrimary}`}
+                            onClick={handleSave}
+                            disabled={loading}
+                        >
+                            {loading ? 'Salvando...' : saved ? (
+                                <>
+                                    <Check size={16} />
+                                    Salvo!
+                                </>
+                            ) : (
+                                <>
+                                    <Save size={16} />
+                                    Salvar Alterações
+                                </>
+                            )}
+                        </button>
+                    </div>
+                )}
             </div>
         </>
     );

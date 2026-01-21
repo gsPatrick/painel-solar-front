@@ -1,6 +1,7 @@
 import { MapPin, Wrench, Calendar, Clock, Edit2, Trash2, Bell, User, StickyNote } from 'lucide-react';
 import Modal from '../../shared/Modal/Modal';
 import styles from './AppointmentDetailsModal.module.css';
+import { authService } from '@/services/api';
 
 const TYPES = {
     'VISITA_TECNICA': { label: 'Visita Técnica', icon: MapPin, color: '#3B82F6', bgColor: 'rgba(59, 130, 246, 0.1)' },
@@ -18,6 +19,9 @@ export default function AppointmentDetailsModal({
     loading = false
 }) {
     if (!appointment) return null;
+
+    const user = authService.getStoredUser();
+    const isViewer = user?.role === 'viewer';
 
     const typeConfig = TYPES[appointment.type] || TYPES['VISITA_TECNICA'];
     const Icon = typeConfig.icon;
@@ -107,24 +111,26 @@ export default function AppointmentDetailsModal({
                 )}
 
                 {/* Actions */}
-                <div className={styles.actions}>
-                    <button
-                        className={styles.btnDelete}
-                        onClick={() => onDelete(appointment)}
-                        disabled={loading}
-                    >
-                        <Trash2 size={16} />
-                        Excluir
-                    </button>
-                    <button
-                        className={styles.btnEdit}
-                        onClick={() => onEdit(appointment)}
-                        disabled={loading}
-                    >
-                        <Edit2 size={16} />
-                        Editar
-                    </button>
-                </div>
+                {!isViewer && (
+                    <div className={styles.actions}>
+                        <button
+                            className={styles.btnDelete}
+                            onClick={() => onDelete(appointment)}
+                            disabled={loading}
+                        >
+                            <Trash2 size={16} />
+                            Excluir
+                        </button>
+                        <button
+                            className={styles.btnEdit}
+                            onClick={() => onEdit(appointment)}
+                            disabled={loading}
+                        >
+                            <Edit2 size={16} />
+                            Editar
+                        </button>
+                    </div>
+                )}
             </div>
         </Modal>
     );

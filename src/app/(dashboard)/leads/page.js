@@ -23,7 +23,7 @@ import Header from '@/components/layout/Header/Header';
 import LeadModal from '@/components/leads/LeadModal/LeadModal';
 import LeadDetailsModal from '@/components/leads/LeadDetailsModal/LeadDetailsModal';
 import ConfirmModal from '@/components/shared/ConfirmModal/ConfirmModal';
-import { leadService, pipelineService } from '@/services/api';
+import { leadService, pipelineService, authService } from '@/services/api';
 import { useNotification } from '@/contexts/NotificationContext';
 import styles from './page.module.css';
 
@@ -43,6 +43,9 @@ const DEMO_PIPELINES = [
 ];
 
 export default function LeadsPage() {
+    const user = authService.getStoredUser();
+    const isViewer = user?.role === 'viewer';
+
     const { showSuccessAlert } = useNotification();
     const [loading, setLoading] = useState(true);
     const [leads, setLeads] = useState([]);
@@ -314,13 +317,15 @@ export default function LeadsPage() {
                         <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={loadData}>
                             <RefreshCw size={16} />
                         </button>
-                        <button
-                            className={`${styles.btn} ${styles.btnPrimary}`}
-                            onClick={() => setShowModal(true)}
-                        >
-                            <Plus size={16} />
-                            Novo Lead
-                        </button>
+                        {!isViewer && (
+                            <button
+                                className={`${styles.btn} ${styles.btnPrimary}`}
+                                onClick={() => setShowModal(true)}
+                            >
+                                <Plus size={16} />
+                                Novo Lead
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -361,13 +366,15 @@ export default function LeadsPage() {
                                             <p className={styles.emptyText}>
                                                 Crie seu primeiro lead para começar.
                                             </p>
-                                            <button
-                                                className={`${styles.btn} ${styles.btnPrimary}`}
-                                                onClick={() => setShowModal(true)}
-                                            >
-                                                <Plus size={16} />
-                                                Criar Lead
-                                            </button>
+                                            {!isViewer && (
+                                                <button
+                                                    className={`${styles.btn} ${styles.btnPrimary}`}
+                                                    onClick={() => setShowModal(true)}
+                                                >
+                                                    <Plus size={16} />
+                                                    Criar Lead
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -447,36 +454,40 @@ export default function LeadsPage() {
                                                 >
                                                     <Eye size={16} />
                                                 </button>
-                                                <button
-                                                    className={styles.actionBtn}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setEditingLead(lead);
-                                                    }}
-                                                    title="Editar"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button
-                                                    className={`${styles.actionBtn} ${styles.warning}`}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setDeleteLead(lead);
-                                                    }}
-                                                    title="Excluir"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                                <button
-                                                    className={`${styles.actionBtn} ${styles.danger}`}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setBlockLead(lead);
-                                                    }}
-                                                    title="Bloquear"
-                                                >
-                                                    <Ban size={16} />
-                                                </button>
+                                                {!isViewer && (
+                                                    <>
+                                                        <button
+                                                            className={styles.actionBtn}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setEditingLead(lead);
+                                                            }}
+                                                            title="Editar"
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.warning}`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setDeleteLead(lead);
+                                                            }}
+                                                            title="Excluir"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                        <button
+                                                            className={`${styles.actionBtn} ${styles.danger}`}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setBlockLead(lead);
+                                                            }}
+                                                            title="Bloquear"
+                                                        >
+                                                            <Ban size={16} />
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </motion.tr>

@@ -1,6 +1,7 @@
 import { User, Phone, DollarSign, Zap, Star, LayoutGrid, Home, MapPin } from 'lucide-react';
 import Modal from '../../shared/Modal/Modal';
 import styles from './LeadDetailsModal.module.css';
+import { authService } from '@/services/api';
 
 export default function LeadDetailsModal({
     isOpen,
@@ -11,6 +12,9 @@ export default function LeadDetailsModal({
     loading = false
 }) {
     if (!lead) return null;
+
+    const user = authService.getStoredUser();
+    const isViewer = user?.role === 'viewer';
 
     const formatCurrency = (value) => {
         if (!value) return '-';
@@ -122,13 +126,15 @@ export default function LeadDetailsModal({
 
                 {/* Actions */}
                 <div className={styles.actions}>
-                    <button
-                        className={styles.btnEdit}
-                        onClick={() => onEdit(lead)}
-                        disabled={loading}
-                    >
-                        Editar Lead
-                    </button>
+                    {!isViewer && (
+                        <button
+                            className={styles.btnEdit}
+                            onClick={() => onEdit(lead)}
+                            disabled={loading}
+                        >
+                            Editar Lead
+                        </button>
+                    )}
                     <button
                         className={styles.btnClose}
                         onClick={onClose}
