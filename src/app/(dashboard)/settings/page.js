@@ -9,7 +9,8 @@ import {
     Target,
     RefreshCw,
     Facebook,
-    Loader2
+    Loader2,
+    Users
 } from 'lucide-react';
 import Header from '@/components/layout/Header/Header';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -250,6 +251,29 @@ export default function SettingsPage() {
                                     style={{ width: `${Math.min((monthlyGoal.current / monthlyGoal.target) * 100, 100)}%` }}
                                 />
                             </div>
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* User Management Link */}
+                <motion.div
+                    className={styles.section}
+                    style={{ cursor: 'pointer' }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    onClick={() => window.location.href = '/settings/users'}
+                >
+                    <div className={styles.sectionHeader}>
+                        <div className={`${styles.sectionIcon}`} style={{ background: 'rgba(var(--color-primary-rgb), 0.1)', color: 'var(--color-primary)' }}>
+                            <Users size={22} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <h2 className={styles.sectionTitle}>Gestão de Usuários</h2>
+                            <p className={styles.sectionSubtitle}>Adicione vendedores, mude senhas e gerencie acessos</p>
+                        </div>
+                        <div style={{ opacity: 0.5 }}>
+                            <Users size={20} />
                         </div>
                     </div>
                 </motion.div>
