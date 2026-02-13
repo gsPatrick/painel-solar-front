@@ -14,12 +14,12 @@
 .title {
     font-size: 1.8rem;
     font-weight: 700;
-    color: var(--color-text-primary);
+    color: var(--color-text-primary, #1B2559);
     margin-bottom: 4px;
 }
 
 .subtitle {
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #A3AED0);
     font-size: 0.95rem;
 }
 
@@ -28,14 +28,14 @@
     align-items: center;
     gap: 8px;
     padding: 12px 20px;
-    background: var(--color-primary);
+    background: var(--color-primary, #4318FF);
     color: white;
     border: none;
     border-radius: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.2);
+    box-shadow: 0 4px 12px rgba(67, 24, 255, 0.2);
 }
 
 .btnAdd:hover {
@@ -47,19 +47,19 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    background: white;
+    border: 1px solid var(--color-border, #E2E8F0);
     padding: 12px 16px;
     border-radius: 12px;
     margin-bottom: 24px;
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #A3AED0);
 }
 
 .searchBar input {
     background: none;
     border: none;
     flex: 1;
-    color: var(--color-text-primary);
+    color: var(--color-text-primary, #1B2559);
     font-size: 1rem;
     outline: none;
 }
@@ -71,8 +71,8 @@
 }
 
 .userCard {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    background: white;
+    border: 1px solid var(--color-border, #E2E8F0);
     border-radius: 16px;
     padding: 20px;
     display: flex;
@@ -82,7 +82,7 @@
 }
 
 .userCard:hover {
-    border-color: var(--color-primary);
+    border-color: var(--color-primary, #4318FF);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
@@ -95,7 +95,7 @@
 .avatar {
     width: 48px;
     height: 48px;
-    background: var(--color-primary);
+    background: var(--color-primary, #4318FF);
     color: white;
     display: flex;
     align-items: center;
@@ -108,7 +108,7 @@
 .userName {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--color-text-primary);
+    color: var(--color-text-primary, #1B2559);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -116,15 +116,15 @@
 
 .badgeMe {
     font-size: 0.7rem;
-    background: var(--color-bg-tertiary);
+    background: #E9EDF5;
     padding: 2px 6px;
     border-radius: 4px;
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #A3AED0);
 }
 
 .userEmail {
     font-size: 0.9rem;
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #A3AED0);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -135,7 +135,7 @@
     justify-content: space-between;
     align-items: center;
     padding-top: 16px;
-    border-top: 1px solid var(--color-border);
+    border-top: 1px solid var(--color-border, #E2E8F0);
 }
 
 .roleBadge {
@@ -149,8 +149,8 @@
 }
 
 .roleBadge.admin {
-    background: rgba(var(--color-primary-rgb), 0.1);
-    color: var(--color-primary);
+    background: rgba(67, 24, 255, 0.1);
+    color: #4318FF;
 }
 
 .roleBadge.sales {
@@ -159,8 +159,8 @@
 }
 
 .roleBadge.viewer {
-    background: var(--color-bg-tertiary);
-    color: var(--color-text-secondary);
+    background: #E9EDF5;
+    color: var(--color-text-secondary, #A3AED0);
 }
 
 .userActions {
@@ -174,17 +174,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-bg-primary);
-    border: 1px solid var(--color-border);
+    background: #F4F7FE;
+    border: 1px solid var(--color-border, #E2E8F0);
     border-radius: 8px;
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #A3AED0);
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .actionBtn:hover {
-    color: var(--color-primary);
-    border-color: var(--color-primary);
+    color: var(--color-primary, #4318FF);
+    border-color: var(--color-primary, #4318FF);
 }
 
 .actionBtn.btnDelete:hover {
@@ -209,7 +209,7 @@
 }
 
 .modal {
-    background: var(--color-bg-primary);
+    background: white;
     border-radius: 20px;
     width: 100%;
     max-width: 450px;
@@ -222,18 +222,19 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border, #E2E8F0);
 }
 
 .modalHeader h2 {
     font-size: 1.25rem;
     font-weight: 700;
+    color: var(--color-text-primary, #1B2559);
 }
 
 .modalHeader button {
     background: none;
     border: none;
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #A3AED0);
     cursor: pointer;
 }
 
@@ -253,23 +254,23 @@
 .inputGroup label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #A3AED0);
 }
 
 .inputGroup input,
 .inputGroup select {
     padding: 12px 16px;
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    background: #F4F7FE;
+    border: 1px solid var(--color-border, #E2E8F0);
     border-radius: 10px;
-    color: var(--color-text-primary);
+    color: var(--color-text-primary, #1B2559);
     font-size: 1rem;
     outline: none;
 }
 
 .inputGroup input:focus,
 .inputGroup select:focus {
-    border-color: var(--color-primary);
+    border-color: var(--color-primary, #4318FF);
 }
 
 .modalActions {
@@ -289,21 +290,21 @@
 }
 
 .btnPrimary {
-    background: var(--color-primary);
+    background: var(--color-primary, #4318FF);
     color: white;
     border: none;
 }
 
 .btnSecondary {
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
-    color: var(--color-text-primary);
+    background: white;
+    border: 1px solid var(--color-border, #E2E8F0);
+    color: var(--color-text-primary, #1B2559);
 }
 
 .modalInfo {
     padding: 16px 24px 0;
     font-size: 0.95rem;
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #A3AED0);
 }
 
 /* Alerts */
@@ -347,7 +348,7 @@
     align-items: center;
     justify-content: center;
     padding: 60px;
-    color: var(--color-text-secondary);
+    color: var(--color-text-secondary, #A3AED0);
     gap: 16px;
 }
 
